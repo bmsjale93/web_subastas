@@ -8,11 +8,12 @@ export default function Button({
   textColor = "text-white",
   fontSize = "text-base",
   padding = "py-3 px-4",
+  width = "w-full",
   onClick = () => {},
 }) {
   return (
     <button
-      className={`${bgColor} ${hoverColor} ${textColor} ${fontSize} ${padding} rounded-md focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out`}
+      className={`${bgColor} ${hoverColor} ${textColor} ${fontSize} ${padding} ${width} rounded-md focus:outline-none focus:shadow-outline transition duration-300 ease-in-out`}
       type="button"
       onClick={onClick}
     >
