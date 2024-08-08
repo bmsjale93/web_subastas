@@ -1,116 +1,130 @@
-"use client";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { auctions } from "../../../constants/auctions";
-import Countdown from "../../../components/countDown";
-import BenefitCalculator from "../../../components/BenefitCalculator";
-import dynamic from "next/dynamic";
-import RadarChart from "../../../components/RadarChart";
-import logo from "../../../../public/logo-fdm.png"
+"use client"; // Indica que este archivo debe ser renderizado en el lado del cliente
+import { useParams } from "next/navigation"; // Hook para obtener parámetros de la URL
+import { useEffect, useState } from "react"; // Hooks de React para efectos y estado
+import Image from "next/image"; // Componente de Next.js para manejar imágenes optimizadas
+import { auctions } from "../../../constants/auctions"; // Importa una lista de subastas
+import Countdown from "../../../components/countDown"; // Importa el componente Countdown
+import BenefitCalculator from "../../../components/BenefitCalculator"; // Importa el componente BenefitCalculator
+import dynamic from "next/dynamic"; // Importa para cargar componentes dinámicamente
+import RadarChart from "../../../components/RadarChart"; // Importa el componente RadarChart
+import ImageGallery from "../../../components/ImageGallery"; // Importa el componente ImageGallery
+import Button from "../../../components/Button"; // Importa el componente Button
+import Header from "../../../components/Header"; // Importa el componente Header
 
+// Dinámicamente importa el componente GoogleMap para renderización del lado del cliente
 const GoogleMap = dynamic(() => import("../../../components/GoogleMap"), {
-  ssr: false,
+  ssr: false, // Desactiva la renderización en el servidor para este componente
 });
 
 export default function AuctionDetail() {
+  // Obtiene los parámetros de la URL
   const params = useParams();
-  const { id } = params;
-  const [auction, setAuction] = useState(null);
+  const { id } = params; // Extrae el ID del parámetro
+  const [auction, setAuction] = useState(null); // Define el estado para la subasta
 
+  // Efecto para buscar la subasta cuando el ID cambia
   useEffect(() => {
     if (id) {
-      const foundAuction = auctions.find((auction) => auction.id === id);
-      setAuction(foundAuction);
+      const foundAuction = auctions.find((auction) => auction.id === id); // Busca la subasta por ID
+      setAuction(foundAuction); // Actualiza el estado con la subasta encontrada
     }
   }, [id]);
 
+  // Si la subasta no está cargada, muestra un mensaje de carga
   if (!auction) {
     return <div>Cargando...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-white py-10">
-      <div className="container mx-auto p-4">
-        <div className="text-center mb-8">
-          <Image
-            src={logo}
-            alt="Logo"
-            className="mx-auto mb-4 w-24 h-24 sm:w-32 sm:h-32 md:w-32 md:h-32"
-          />
-          <h1 className="text-3xl font-bold">FDM REAL ESTATE</h1>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="bg-blue-700 text-white p-4 rounded-lg shadow-md col-span-1 sm:col-span-2 lg:col-span-1">
-            <h2 className="text-lg font-semibold">SUBASTA ACTUAL</h2>
-            <p className="text-2xl">{auction.value}</p>
-            <h2 className="text-lg font-semibold mt-4">
-              CIERRE PARA LA SUBASTA
-            </h2>
-            <Countdown endDate={auction.endDate} />
-          </div>
-          <BenefitCalculator />
-          <div className="bg-white p-4 rounded-lg shadow-md col-span-1">
-            <h2 className="text-lg font-semibold">INFORMACIÓN DE LA SUBASTA</h2>
-            <p>Dirección: {auction.address}</p>
-            <p>Código Postal: {auction.postalCode}</p>
-            <p>Localidad: {auction.city}</p>
-            <p>Provincia: {auction.province}</p>
-            <p>Fecha Inicio: {auction.startDate}</p>
-            <p>Fecha Conclusión: {auction.endDate}</p>
-            <p>Tipo de Subasta: {auction.auctionType}</p>
-            <p>
-              Enlace Subasta:{" "}
-              <a href={auction.link} className="text-blue-500">
-                Haz click aquí
-              </a>
-            </p>
-            <p>Valor Subasta: {auction.value}</p>
-            <p>Tasación: {auction.appraisalValue}</p>
-            <p>Importe Depósito: {auction.deposit}</p>
-            <p>Puja Mínima: {auction.minBid}</p>
-            <p>Tramos entre Pujas: {auction.bidSteps}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md col-span-1">
-            <h2 className="text-lg font-semibold">LOCALIZACIÓN</h2>
-            <GoogleMap
-              latitude={auction.coordinates.latitude}
-              longitude={auction.coordinates.longitude}
-            />
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md col-span-2 lg:col-span-1">
-            <h2 className="text-lg font-semibold">GALERÍA DE IMÁGENES</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {auction.images.map((src, index) => (
-                <Image
-                  key={index}
-                  src={src}
-                  alt={`Imagen ${index + 1}`}
-                  className="rounded-lg"
-                  width={200}
-                  height={150}
-                />
-              ))}
+    <div className="min-h-screen bg-gray-100">
+      <Header /> {/* Componente de cabecera */}
+      <div className="container mx-auto p-4 py-10">
+        {/* Grid layout para el contenido */}
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+          {/* PRIMERA COLUMNA */}
+          <div className="lg:col-span-1">
+            <div className="bg-blue-700 text-white py-6 pb-3 pt-8 rounded-[28px] shadow-md mb-4">
+              <h2 className="text-[20px] text-center font-bold">
+                SUBASTA ACTUAL
+              </h2>
+              <p className="text-[36px] text-center font-semibold">
+                {auction.value}
+              </p>
+            </div>
+
+            <div className="bg-white text-blue-700 py-4 rounded-[28px] shadow-md mb-4 border-3 border-blue-700">
+              <h2 className="text-[20px] text-center font-bold">
+                CIERRE SUBASTA
+              </h2>
+              <div className="text-[40px] text-center font-semibold">
+                <Countdown endDate={auction.endDate} />{" "}
+                {/* Componente de cuenta atrás */}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[28px] mb-4">
+              <BenefitCalculator auction={auction} />{" "}
+              {/* Componente calculadora de beneficios */}
+            </div>
+
+            <div className="bg-white text-blue-700 px-2 py-6 pb-3 pt-8 rounded-[28px] shadow-md mb-4 border-3 border-blue-700">
+              <h2 className="text-[20px] text-center font-bold mb-2">
+                VALORACIÓN DE LA VIVIENDA
+              </h2>
+              <RadarChart qualities={auction.qualities} />{" "}
+              {/* Componente de gráfico radar */}
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-md col-span-1">
-            <h2 className="text-lg font-semibold">CATASTRO</h2>
-            <p>Referencia Catastral: {auction.cadastralReference}</p>
-            <p>Clase: {auction.cadastralClass}</p>
-            <p>Uso Principal: {auction.cadastralUse}</p>
-            <p>Superficie Construida: {auction.constructedArea} m²</p>
-            <p>Vivienda: {auction.propertyArea} m²</p>
-            <p>Año Construcción: {auction.yearBuilt}</p>
-            <p>
-              Enlace Catastro:{" "}
-              <a href={auction.cadastralLink} className="text-blue-500">
-                Haz click aquí
-              </a>
-            </p>
+
+          {/* SEGUNDA COLUMNA */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-[28px] border-3 border-blue-700">
+              <h2 className="text-[20px] text-center text-blue-700 font-bold mb-4">
+                INFORMACIÓN
+              </h2>
+              <div className="bg-white rounded-lg">
+                <div className="mb-4 rounded-xl">
+                  <p>Dirección: {auction.address}</p>
+                  <p>Código Postal: {auction.postalCode}</p>
+                  <p>Localidad: {auction.city}</p>
+                  <p>Provincia: {auction.province}</p>
+                  <p>Fecha Inicio: {auction.startDate}</p>
+                  <p>Fecha Conclusión: {auction.endDate}</p>
+                  <p>Tipo de Subasta: {auction.auctionType}</p>
+                  <p>
+                    Enlace Subasta:{" "}
+                    <a href={auction.link} className="text-blue-500">
+                      Haz click aquí
+                    </a>
+                  </p>
+                  <p>Valor Subasta: {auction.value}</p>
+                  <p>Tasación: {auction.appraisalValue}</p>
+                  <p>Importe Depósito: {auction.deposit}</p>
+                  <p>Puja Mínima: {auction.minBid}</p>
+                  <p>Tramos entre Pujas: {auction.bidSteps}</p>
+                </div>
+                <div className="text-center">
+                  <Button text="DESCARGA PDF DE COMPRA Y VENTA" />{" "}
+                  {/* Botón de descarga */}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-md col-span-2 lg:col-span-1">
-            <h2 className="text-lg font-semibold">VALORACIÓN DE LA VIVIENDA</h2>
-            <RadarChart qualities={auction.qualities} />
+
+          {/* TERCERA COLUMNA */}
+          <div className="lg:col-span-2">
+            <div className="text-blue-700 p-6 rounded-[28px] mb-4 bg-white border-3 border-blue-700">
+              <h2 className="text-[20px] text-center font-bold mb-4">
+                LOCALIZACIÓN SUBASTA
+              </h2>
+              <GoogleMap
+                latitude={auction.coordinates.latitude}
+                longitude={auction.coordinates.longitude}
+              />{" "}
+              {/* Componente de mapa de Google */}
+            </div>
+            <ImageGallery images={auction.images} />{" "}
+            {/* Componente de galería de imágenes */}
           </div>
         </div>
       </div>

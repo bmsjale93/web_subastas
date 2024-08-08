@@ -1,12 +1,10 @@
-import image from "../../public/ANCORA/foto-vivienda-1.png"
-
 // Listado Subastas
 export const auctions = [
   {
     id: "SUB0001",
     title: "CALLE ANCORA, 4",
     value: "152.000,00€",
-    endDate: "2024-08-08T00:00:00Z",
+    endDate: "2024-08-24T18:00:00Z", // Fecha de finalización ajustada a las 6 de la tarde
     link: "/subastas/SUB0001",
     process: "Terminada",
     address: "CL ANCORA 4 Nº- 8 Esc.1 Ptl:01 EDF ANCORA 1ª FASE",
@@ -23,8 +21,13 @@ export const auctions = [
     cadastralReference: "4146502QA4544E0129WJ",
     cadastralClass: "URBANO",
     cadastralUse: "RESIDENCIAL",
-    constructedArea: "92",
+    constructedArea: "92", // Área construida en metros cuadrados
     propertyArea: "82",
+    garageArea: 15, // Área del garaje en metros cuadrados
+    storageRoomArea: 10, // Área del trastero en metros cuadrados
+    squareMeterValue: 2000, // Valor del metro cuadrado
+    garageSquareMeterValue: 1500, // Valor del metro cuadrado del garaje
+    storageRoomSquareMeterValue: 1000, // Valor del metro cuadrado del trastero
     yearBuilt: "2003",
     cadastralLink: "#",
     coordinates: {
@@ -32,25 +35,25 @@ export const auctions = [
       longitude: -6.23291,
     },
     qualities: {
-      exteriors: 10,
-      roofs: 10,
-      windows: 8,
-      gardens: 10,
-      structures: 9,
-      installations: 9,
-      neighborhood: 9,
-      noise: 9,
-      parking: 7,
-      location: 9,
-      tenantStatus: 3,
-      propertyType: 10,
+      "Fachada y Exteriores": 10,
+      "Techo y Canaletas": 10,
+      "Ventanas y Puertas": 8,
+      "Jardín y Terrenos": 10,
+      Estructuras: 9,
+      Instalaciones: 10,
+      Vecindario: 9,
+      Seguridad: 9,
+      "Ruido y Olores": 9,
+      Estacionamiento: 7,
+      Localización: 9,
+      "Estado Inquilino": 3,
+      "Tipo Vivienda": 10,
     },
     images: [
       "/ANCORA/foto-vivienda-1.png",
       "/ANCORA/foto-vivienda-2.png",
       "/ANCORA/foto-vivienda-3.png",
       "/ANCORA/foto-vivienda-4.png",
-      "/ANCORA/foto-vivienda-5.png",
     ],
   },
   {
