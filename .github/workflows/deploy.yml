@@ -11,12 +11,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # Actualizado a v3 para usar Node.js 16 o superior
 
       - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0  # Actualiza a la última versión compatible
         with:
-          server: ftp://45.84.205.143  # Cambia a tu dirección FTP si es diferente
+          server: 45.84.205.143  # Usa solo la IP sin el prefijo ftp://
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./  # Directorio de tu proyecto local
