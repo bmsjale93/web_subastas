@@ -7,25 +7,37 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
   errorElement.classList.add("hidden");
   errorElement.textContent = "";
 
-  // Validación estática
-  if (usuario === "admin" && contrasena === "password123") {
-    // Redirige a la página de subastas
-    window.location.href = "subastas.html";
-  } else {
-    // Muestra un mensaje de error
-    errorElement.textContent = "Usuario o contraseña incorrectos";
-    errorElement.classList.remove("hidden");
-  }
-});
+  // Crear una solicitud AJAX para enviar los datos al servidor
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "login.php", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-// Configuración dinámica del botón (opcional)
-const button = document.getElementById("loginButton");
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      try {
+        const response = JSON.parse(xhr.responseText);
+        if (response.success) {
+          // Redirigir a la página de subastas si el login es exitoso
+          window.location.href = "subastas.php";
+        } else {
+          // Mostrar el mensaje de error
+          errorElement.textContent =
+            response.message || "Ocurrió un error inesperado";
+          errorElement.classList.remove("hidden");
+        }
+      } catch (error) {
+        // Manejar el caso donde la respuesta no sea JSON
+        errorElement.textContent =
+          "Error al procesar la respuesta del servidor.";
+        errorElement.classList.remove("hidden");
+      }
+    }
+  };
 
-// Puedes cambiar las propiedades aquí si es necesario
-button.style.backgroundColor = "#1D4ED8"; // Azul Tailwind
-button.addEventListener("mouseover", () => {
-  button.style.backgroundColor = "#000"; // Negro
-});
-button.addEventListener("mouseout", () => {
-  button.style.backgroundColor = "#1D4ED8"; // Azul Tailwind
+  // Enviar los datos al servidor
+  xhr.send(
+    `usuario=${encodeURIComponent(usuario)}&contrasena=${encodeURIComponent(
+      contrasena
+    )}`
+  );
 });

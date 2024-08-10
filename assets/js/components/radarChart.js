@@ -3,18 +3,15 @@ export function renderRadarChart(qualities) {
   const data = Object.values(qualities);
 
   const container = document.createElement("div");
-  container.className = "relative h-80 w-full";
+  container.className = "relative h-80 w-full bg-white";
 
   const canvas = document.createElement("canvas");
-  canvas.id = "radarChart";
   container.appendChild(canvas);
 
   function loadChartScript(callback) {
     if (typeof Chart !== "undefined") {
-      // Si Chart.js ya está cargado, ejecuta el callback inmediatamente
       callback();
     } else {
-      // Si Chart.js no está cargado, lo cargamos dinámicamente
       const script = document.createElement("script");
       script.src = "https://cdn.jsdelivr.net/npm/chart.js";
       script.onload = callback;
@@ -94,7 +91,6 @@ export function renderRadarChart(qualities) {
     }
   }
 
-  // Cargar Chart.js si es necesario y luego inicializar el gráfico
   loadChartScript(initializeChart);
 
   return container;

@@ -1,11 +1,12 @@
-export function renderGoogleMap(lat, lng) {
-  const mapContainer = document.createElement("div");
-  mapContainer.style.height = "300px";
-  mapContainer.style.width = "100%";
+export function renderGoogleMap(container, lat, lng) {
+  if (typeof lat !== "number" || typeof lng !== "number") {
+    console.error("Latitud y longitud no son válidas:", lat, lng);
+    return;
+  }
 
   function initializeMap() {
     if (window.google && window.google.maps) {
-      const map = new window.google.maps.Map(mapContainer, {
+      const map = new window.google.maps.Map(container, {
         center: { lat: lat, lng: lng },
         zoom: 15,
       });
@@ -19,26 +20,26 @@ export function renderGoogleMap(lat, lng) {
     }
   }
 
-  function loadScript() {
-    const existingScript = document.getElementById("googleMaps");
+  if (window.google && window.google.maps) {
+    // Si Google Maps ya está cargado, inicializa el mapa
+    initializeMap();
+  } else {
+    // Carga el script de Google Maps
+    const script = document.getElementById("googleMaps");
 
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAasBL6-2h6lWlG8U9Ew3VD4-QkVvGePdA&libraries=places`;
-      script.id = "googleMaps";
-      script.async = true;
-      script.defer = true;
-      script.onload = initializeMap;
-      script.onerror = () => {
+    if (!script) {
+      const newScript = document.createElement("script");
+      newScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAasBL6-2h6lWlG8U9Ew3VD4-QkVvGePdA&libraries=places`;
+      newScript.id = "googleMaps";
+      newScript.async = true;
+      newScript.defer = true;
+      newScript.onload = initializeMap;
+      newScript.onerror = () => {
         console.error("Error loading Google Maps script");
       };
-      document.head.appendChild(script);
+      document.head.appendChild(newScript);
     } else {
-      existingScript.onload = initializeMap;
+      script.onload = initializeMap;
     }
   }
-
-  loadScript();
-
-  return mapContainer;
 }

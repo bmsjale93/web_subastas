@@ -1,13 +1,11 @@
 export function renderImageGallery(images) {
   // Crear el contenedor principal de la galería
   const galleryContainer = document.createElement("div");
-  galleryContainer.className =
-    "bg-white p-6 rounded-[28px]";
+  galleryContainer.className = "bg-white p-6 rounded-xl border-3 border-blue-700";
 
   // Crear y añadir el título de la galería
   const galleryTitle = document.createElement("h2");
-  galleryTitle.className =
-    "text-xl text-center text-blue-700 font-bold mb-4";
+  galleryTitle.className = "text-xl text-center text-blue-700 font-bold mb-4";
   galleryTitle.textContent = "GALERÍA DE IMÁGENES";
   galleryContainer.appendChild(galleryTitle);
 
@@ -43,7 +41,7 @@ export function renderImageGallery(images) {
 
   // Crear cada imagen en la cuadrícula
   images.forEach((src, index) => {
-    console.log(`Cargando imagen: ${src}`); // Verifica que las rutas de las imágenes sean correctas
+    console.log(`Cargando imagen: ${src}`); // Depuración de rutas
     const imageWrapper = document.createElement("div");
     imageWrapper.className = "relative";
 
