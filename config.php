@@ -1,8 +1,11 @@
 <?php
-$servername = "localhost"; 
-$username = "u738526118_subastasfdm"; 
-$password = "FDM@2020alejandro"; 
-$dbname = "u738526118_subastas_fdm"; 
+
+$config = include('config.secure.php');
+
+$servername = $config['servername'];
+$username = $config['username'];
+$password = $config['password'];
+$dbname = $config['dbname'];
 
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
