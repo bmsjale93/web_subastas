@@ -1,0 +1,23 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Despliega cuando se haga push a la rama main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: ftp://45.84.205.143  # Cambia a tu dirección FTP si es diferente
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./  # Directorio de tu proyecto local
+          server-dir: /public_html/  # Directorio en tu servidor
