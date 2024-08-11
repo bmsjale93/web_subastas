@@ -1,3 +1,5 @@
+import { GOOGLE_MAPS_API_KEY } from "../../../config.api.js";
+
 export function renderGoogleMap(container, lat, lng) {
   if (typeof lat !== "number" || typeof lng !== "number") {
     console.error("Latitud y longitud no son válidas:", lat, lng);
@@ -29,7 +31,7 @@ export function renderGoogleMap(container, lat, lng) {
 
     if (!script) {
       const newScript = document.createElement("script");
-      newScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAasBL6-2h6lWlG8U9Ew3VD4-QkVvGePdA&libraries=places`;
+      newScript.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
       newScript.id = "googleMaps";
       newScript.async = true;
       newScript.defer = true;

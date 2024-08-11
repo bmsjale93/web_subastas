@@ -155,6 +155,7 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/config.api.js"></script>
     <script type="module">
         import {
             renderCountdown
@@ -218,8 +219,5 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
         });
     </script>
 
-
-    <!-- <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAasBL6-2h6lWlG8U9Ew3VD4-QkVvGePdA&libraries=places"></script> -->
 </body>
-
 </html>
