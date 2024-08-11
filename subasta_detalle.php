@@ -43,12 +43,10 @@ function getSubastaImages($conn, $id_subasta)
     $stmt->execute();
     $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    // Agregar el prefijo del proyecto a cada imagen
-    $baseUrl = '/subastas_fdm'; // Cambia esto si el nombre de la carpeta es diferente
-    return array_map(function ($image) use ($baseUrl) {
-        return $baseUrl . $image;
-    }, $images);
+    // Si las imágenes están en la ruta /assets/, no necesitas agregar ningún prefijo
+    return $images;
 }
+
 
 $images = getSubastaImages($conn, $id_subasta);
 

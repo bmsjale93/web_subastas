@@ -7,7 +7,6 @@ if (!isset($_GET['token']) || $_GET['token'] !== $secret_token) {
     die('Acceso no autorizado');
 }
 
-
 /*
  * Script para insertar una nueva subasta en la base de datos.
  * 
@@ -31,8 +30,22 @@ if (!isset($_GET['token']) || $_GET['token'] !== $secret_token) {
  * - Revisa la sección "Protección del archivo" en este script para más detalles sobre cómo protegerlo.
  */
 
-// Datos de la nueva subasta
+// Datos de la nueva subasta (modificar estos valores según sea necesario)
 $direccion = 'CL ANCORA 4 N2-8 Es:1 Pl:01 Pt:G EDIFICIO ANCORA 1ª FASE';
+$cp = '11500'; // Código Postal
+$localidad = 'PUERTO SANTA MARÍA';
+$provincia = 'CÁDIZ';
+$fecha_inicio = '2024-07-19';
+$fecha_conclusion = '2024-08-08';
+$enlace_subasta = 'https://acortar.link/7GWoA2';
+$valor_subasta = 152000.00;
+$tasacion = 0.00;
+$importe_deposito = 7600.00;
+$puja_minima = 'Sin puja mínima';
+$tramos_pujas = 3040.00;
+$usuario = 'admin';
+$tipo_subasta = 'SUBASTA BOE';
+
 $ref_catastral = '4146502QA4544E0129WJ';
 $clase = 'URBANO';
 $uso_principal = 'RESIDENCIAL';
@@ -44,22 +57,14 @@ $ano_construccion = 2003;
 $enlace_catastro = 'https://acortar.link/5MBhfg';
 $latitud = 36.604440;
 $altitud = -6.272388;
-$tipo_subasta = 'SUBASTA BOE';
+
 $precio_medio_min = 2700.00;
 $precio_venta_min = 248400.00;
 $precio_medio = 3000.00;
 $precio_venta_medio = 276000.00;
 $precio_max = 3300.00;
 $precio_venta_max = 303600.00;
-$fecha_inicio = '2024-07-19';
-$fecha_conclusion = '2024-08-08';
-$enlace_subasta = 'https://acortar.link/7GWoA2';
-$valor_subasta = 152000.00;
-$tasacion = 0.00;
-$importe_deposito = 7600.00;
-$puja_minima = 'Sin puja mínima';
-$tramos_pujas = 3040.00;
-$usuario = 'admin';
+
 $fachada_y_exteriores = 10;
 $techo_y_canaletas = 10;
 $ventanas_y_puerta = 8;
@@ -75,7 +80,7 @@ $estado_inquilino = 9;
 $tipo_de_vivienda = 3;
 $puntuacion_final = 8.58;
 
-// Imágenes de la subasta
+// Imágenes de la subasta (modificar según sea necesario)
 $imagenes = [
     ['url' => '/assets/img/ANCORA/foto-vivienda-1.png', 'descripcion' => 'Fachada principal'],
     ['url' => '/assets/img/ANCORA/foto-vivienda-2.png', 'descripcion' => 'Vista lateral'],
@@ -97,12 +102,15 @@ try {
         INSERT INTO Subastas (
             direccion, cp, localidad, provincia, fecha_inicio, fecha_conclusion, enlace_subasta, valor_subasta, tasacion, importe_deposito, puja_minima, tramos_pujas, id_usuario, id_tipo_subasta
         ) VALUES (
-            :direccion, '11500', 'PUERTO SANTA MARÍA', 'CÁDIZ', :fecha_inicio, :fecha_conclusion, :enlace_subasta, :valor_subasta, :tasacion, :importe_deposito, :puja_minima, :tramos_pujas,
+            :direccion, :cp, :localidad, :provincia, :fecha_inicio, :fecha_conclusion, :enlace_subasta, :valor_subasta, :tasacion, :importe_deposito, :puja_minima, :tramos_pujas,
             (SELECT id_usuario FROM USUARIOS WHERE usuario = :usuario),
             (SELECT id_tipo_subasta FROM TiposSubasta WHERE tipo_subasta = :tipo_subasta)
         )
     ");
     $stmt->bindParam(':direccion', $direccion);
+    $stmt->bindParam(':cp', $cp);
+    $stmt->bindParam(':localidad', $localidad);
+    $stmt->bindParam(':provincia', $provincia);
     $stmt->bindParam(':fecha_inicio', $fecha_inicio);
     $stmt->bindParam(':fecha_conclusion', $fecha_conclusion);
     $stmt->bindParam(':enlace_subasta', $enlace_subasta);
