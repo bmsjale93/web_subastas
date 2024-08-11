@@ -21,18 +21,29 @@ export function renderBenefitCalculator(auction) {
 
   button.addEventListener("click", () => {
     const purchasePrice = parseFloat(purchasePriceInput.value) || 0;
-    const additionalCostsPercentage = 7;
-    const notaryCosts = 1000;
-    const registryCosts = 500;
-    const administrativeCosts = 800;
 
-    // Calcula los costos adicionales
-    const additionalCosts =
-      (purchasePrice * additionalCostsPercentage) / 100 +
+    // Impuestos y gastos fijos
+    const itpPercentage = 10.0; // ITP
+    const notaryCosts = 1000; // Gastos notariales
+    const registryCosts = 500; // Registro de la propiedad
+    const administrativeCosts = 800; // Gastos administrativos
+    const addedCostsPercentage = 7.0; // Gastos añadidos
+
+    const irpfPercentage = 21.0; // IRPF sobre el beneficio
+    const saleCommissionPercentage = 3.0; // Comisión de venta
+    const saleNotaryCosts = 1000; // Gastos notariales de venta
+    const saleRegistryCosts = 500; // Gastos de registro de venta
+
+    // Calcula los costos adicionales de compra
+    const addedCosts = (purchasePrice * addedCostsPercentage) / 100;
+    const itpCosts = (purchasePrice * itpPercentage) / 100;
+    const totalPurchaseCost =
+      purchasePrice +
+      addedCosts +
+      itpCosts +
       notaryCosts +
       registryCosts +
       administrativeCosts;
-    const totalPurchaseCost = purchasePrice + additionalCosts;
 
     // Asegurarse de que todos los valores están presentes y son números válidos
     const constructedArea = parseFloat(auction.constructedArea) || 0;
@@ -50,12 +61,16 @@ export function renderBenefitCalculator(auction) {
       garageArea * garageSquareMeterValue +
       storageRoomArea * storageRoomSquareMeterValue;
 
-    // Asegurarse de que el precio de venta recomendado es un número válido
-    const salePriceIsValid =
-      !isNaN(calculatedSalePrice) && calculatedSalePrice > 0;
+    // Cálculo de costos de venta
+    const saleCommission =
+      (calculatedSalePrice * saleCommissionPercentage) / 100;
+    const saleIRPFCosts = (calculatedSalePrice * irpfPercentage) / 100;
+    const totalSaleCosts =
+      saleCommission + saleIRPFCosts + saleNotaryCosts + saleRegistryCosts;
 
     // Cálculo del beneficio y porcentaje
-    const calculatedBenefit = calculatedSalePrice - totalPurchaseCost;
+    const calculatedBenefit =
+      calculatedSalePrice - totalPurchaseCost - totalSaleCosts;
     const calculatedBenefitPercent =
       totalPurchaseCost !== 0
         ? (calculatedBenefit / totalPurchaseCost) * 100
@@ -66,11 +81,9 @@ export function renderBenefitCalculator(auction) {
       <p class="text-base font-medium">Compra tras Gastos Añadidos: ${totalPurchaseCost.toFixed(
         2
       )}€</p>
-      <p class="text-base font-medium">% de Valor de la Subasta: ${
-        salePriceIsValid
-          ? ((totalPurchaseCost / calculatedSalePrice) * 100).toFixed(2)
-          : "0.00"
-      }%</p>
+      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toFixed(
+        2
+      )}€</p>
       <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toFixed(
         2
       )}€</p>
