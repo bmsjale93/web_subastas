@@ -1,8 +1,0 @@
-AuthType Basic
-AuthName "Restricted Area"
-AuthUserFile /ruta/a/.htpasswd  # Cambia a la ruta real de tu archivo .htpasswd
-Require valid-user
-
-<Files "insert_subasta.php">
-    Require valid-user
-</Files>
