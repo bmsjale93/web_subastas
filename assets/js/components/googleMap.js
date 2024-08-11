@@ -1,4 +1,4 @@
-import { GOOGLE_MAPS_API_KEY } from "../../../config_api.js";
+import { GOOGLE_MAPS_API_KEY } from "../../../config_api.js"
 
 export function renderGoogleMap(container, lat, lng) {
   if (typeof lat !== "number" || typeof lng !== "number") {
