@@ -16,12 +16,14 @@ if (!$id_subasta) {
 }
 
 try {
-    // Consulta para obtener los detalles de la subasta
-    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*
+    // Consulta para obtener los detalles de la subasta incluyendo el tipo de subasta
+    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*, sd.precio_medio, sd.precio_venta_min, sd.precio_venta_medio, sd.precio_venta_max, sd.url_pdf_precios, ts.tipo_subasta
                             FROM Subastas s
                             LEFT JOIN Catastro c ON s.id_subasta = c.id_subasta
                             LEFT JOIN Valoraciones v ON s.id_subasta = v.id_subasta
                             LEFT JOIN Localizaciones l ON s.id_subasta = l.id_subasta
+                            LEFT JOIN SubastaDetalles sd ON s.id_subasta = sd.id_subasta
+                            LEFT JOIN TiposSubasta ts ON s.id_tipo_subasta = ts.id_tipo_subasta
                             WHERE s.id_subasta = :id_subasta");
     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
     $stmt->execute();
@@ -36,6 +38,7 @@ try {
     die();
 }
 
+
 function getSubastaImages($conn, $id_subasta)
 {
     $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
@@ -46,6 +49,17 @@ function getSubastaImages($conn, $id_subasta)
     // Si las imágenes están en la ruta /assets/, no necesitas agregar ningún prefijo
     return $images;
 }
+
+// Función para obtener los documentos PDF asociados a la subasta
+function getSubastaDocuments($conn, $id_subasta)
+{
+    $stmt = $conn->prepare("SELECT nombre_documento, url_documento FROM Documentos WHERE id_subasta = :id_subasta");
+    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$documents = getSubastaDocuments($conn, $id_subasta);
 
 
 $images = getSubastaImages($conn, $id_subasta);
@@ -97,12 +111,12 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
             <!-- Primera columna -->
             <div id="columna1" class="lg:col-span-1">
                 <div class="bg-blue-700 text-white py-6 pb-8 pt-8 rounded-xl shadow-md mb-4">
-                    <h2 class="text-2xl text-center font-bold">SUBASTA ACTUAL</h2>
-                    <p class="text-4xl text-center font-semibold"><?= number_format($subasta['valor_subasta'], 2) ?> €</p>
+                    <h2 class="text-xl text-center font-bold">SUBASTA ACTUAL</h2>
+                    <p class="text-3xl text-center font-semibold"><?= number_format($subasta['valor_subasta'], 2) ?> €</p>
                 </div>
                 <div class="bg-white text-blue-700 py-4 rounded-xl shadow-md mb-4 border-3 border-blue-700">
-                    <h2 class="text-2xl text-center font-bold">CIERRE SUBASTA</h2>
-                    <div id="countdown-container" class="text-4xl text-center font-semibold"></div>
+                    <h2 class="text-xl text-center font-bold">CIERRE SUBASTA</h2>
+                    <div id="countdown-container" class="text-3xl text-center font-semibold"></div>
                 </div>
                 <div id="benefit-calculator"></div>
 
@@ -134,13 +148,38 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
                             <p>Tramos entre Pujas: <?= number_format($subasta['tramos_pujas'], 2) ?> €</p>
                         </div>
                         <div class="text-center">
-                            <button class="bg-blue-700 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out">
-                                DESCARGA PDF DE COMPRA Y VENTA
-                            </button>
+                            <?php if (!empty($subasta['url_pdf_precios'])) : ?>
+                                <a href="<?= htmlspecialchars($subasta['url_pdf_precios']) ?>" target="_blank">
+                                    <button class="bg-blue-700 text-sm hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out">
+                                        DESCARGA PDF DE COMPRA Y VENTA
+                                    </button>
+                                </a>
+                            <?php else : ?>
+                                <button class="bg-gray-400 text-white font-bold py-2 px-4 rounded w-full cursor-not-allowed" disabled>
+                                    PDF NO DISPONIBLE
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+
+                <!-- Sección de Documentos -->
+                <?php if (!empty($documents)) : ?>
+                    <div class="bg-white p-6 rounded-xl border-3 border-blue-700 mt-4">
+                        <h2 class="text-xl text-center text-blue-700 font-bold mb-4">DOCUMENTOS DISPONIBLES</h2>
+                        <div class="bg-white rounded-lg">
+                            <?php foreach ($documents as $document) : ?>
+                                <div class="mb-2">
+                                    <a href="<?= htmlspecialchars($document['url_documento']) ?>" class="text-blue-500 hover:text-blue-700 font-medium" target="_blank">
+                                        <?= htmlspecialchars($document['nombre_documento']) ?>
+                                    </a>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
+
 
             <!-- Tercera columna -->
             <div id="columna3" class="lg:col-span-2">
@@ -220,4 +259,5 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
     </script>
 
 </body>
+
 </html>

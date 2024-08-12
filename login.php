@@ -21,6 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Verificar la contraseña ingresada con la hash almacenada
             if (password_verify($contrasena, $user['contrasena'])) {
                 $_SESSION['usuario'] = $usuario; // Guardar el usuario en la sesión
+
+                // Verificar y guardar el tipo de usuario en la sesión
+                if ($user['id_tipo_usuario'] == 1) {
+                    $_SESSION['tipo_usuario'] = 'admin';
+                } else {
+                    $_SESSION['tipo_usuario'] = 'usuario';
+                }
+
                 echo json_encode(['success' => true]); // Devolver éxito como JSON
             } else {
                 echo json_encode(['success' => false, 'message' => 'Usuario o contraseña incorrectos']);
