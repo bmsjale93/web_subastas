@@ -72,6 +72,9 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
     exit();
 }
 
+// Puja más alta actual (este valor puede ser modificado)
+$puja_mas_alta = 0.00;
+
 ?>
 
 <!DOCTYPE html>
@@ -112,8 +115,9 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
             <div id="columna1" class="lg:col-span-1">
                 <div class="bg-blue-700 text-white py-6 pb-8 pt-8 rounded-xl shadow-md mb-4">
                     <h2 class="text-xl text-center font-bold">SUBASTA ACTUAL</h2>
-                    <p class="text-3xl text-center font-semibold"><?= number_format($subasta['valor_subasta'], 2) ?> €</p>
+                    <p class="text-3xl text-center font-semibold"><?= number_format($puja_mas_alta, 2) ?> €</p>
                 </div>
+
                 <div class="bg-white text-blue-700 py-4 rounded-xl shadow-md mb-4 border-3 border-blue-700">
                     <h2 class="text-xl text-center font-bold">CIERRE SUBASTA</h2>
                     <div id="countdown-container" class="text-3xl text-center font-semibold"></div>
