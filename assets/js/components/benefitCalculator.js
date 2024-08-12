@@ -81,10 +81,10 @@ export function renderBenefitCalculator(auction) {
       <p class="text-base font-medium">Compra tras Gastos Añadidos: ${totalPurchaseCost.toFixed(
         2
       )}€</p>
-      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toFixed(
+      <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toFixed(
         2
       )}€</p>
-      <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toFixed(
+      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toFixed(
         2
       )}€</p>
       <div>
