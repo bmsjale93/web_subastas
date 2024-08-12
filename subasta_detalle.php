@@ -73,8 +73,11 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
     exit();
 }
 
-// Puja más alta actual (este valor puede ser modificado)
-$puja_mas_alta = 0.00;
+// Extraer la Puja Más Alta directamente de la base de datos
+$puja_mas_alta = $subasta['puja_mas_alta'];
+
+// Calcular el Precio de Venta Estimado
+$precio_venta_estimado = $subasta['precio_medio'] * $subasta['sup_construida'];
 
 ?>
 
@@ -150,6 +153,8 @@ $puja_mas_alta = 0.00;
                             <p>Importe Depósito: <?= number_format($subasta['importe_deposito'], 2) ?> €</p>
                             <p>Puja Mínima: <?= htmlspecialchars($subasta['puja_minima']) ?></p>
                             <p>Tramos entre Pujas: <?= number_format($subasta['tramos_pujas'], 2) ?> €</p>
+                            <p>Precio Metro Cuadrado: <?= number_format($subasta['precio_medio'], 2) ?> €/m²</p>
+                            <p>Precio Venta Estimado: <?= number_format($precio_venta_estimado, 2) ?> €</p>
 
                             <!-- Información del Catastro -->
                             <h3 class="text-lg font-bold mt-4">Información del Catastro:</h3>

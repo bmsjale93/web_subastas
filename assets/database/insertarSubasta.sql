@@ -17,24 +17,24 @@ VALUES
 (@id_subasta, '36.444536', '-5.105489');
 
 -- Insertar en la tabla SubastaDetalles
-INSERT INTO `SubastaDetalles` (`id_subasta`, `precio_medio`, `precio_venta_min`, `precio_venta_medio`, `precio_venta_max`, `url_pdf_precios`)
+INSERT INTO `SubastaDetalles` (`id_subasta`, `precio_medio`, `precio_venta_min`, `precio_venta_medio`, `precio_venta_max`, `url_pdf_precios`, `puja_mas_alta`)
 VALUES 
-(@id_subasta, 2800.00, 236880.00, 263200.00, 289520.00, 'assets/pdf_compra/ESTEPONA');
+(@id_subasta, 2800.00, 236880.00, 263200.00, 289520.00, 'assets/pdf_compra/ESTEPONA', 0.00);
 
 -- Insertar en la tabla Valoraciones
 INSERT INTO `Valoraciones` (`id_subasta`, `fachada_y_exteriores`, `techo_y_canaletas`, `ventanas_y_puerta`, `jardin_y_terrenos`, `estado_estructuras`, `instalaciones_visibles`, `vecindario`, `seguridad`, `ruido_y_olores`, `acceso_y_estacionamiento`, `localizacion`, `estado_inquilino`, `tipo_de_vivienda`, `puntuacion_final`)
 VALUES 
-(@id_subasta, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+(@id_subasta, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 'Vivienda', 5);
 
--- Insertar en la tabla Documentos (solo un ejemplo, puedes añadir más si es necesario)
+-- Insertar en la tabla Documentos
 INSERT INTO `Documentos` (`id_subasta`, `nombre_documento`, `url_documento`)
 VALUES 
 (@id_subasta, 'Vivienda Apartamento Estepona', 'assets/documentos/ESTEPONA/Vivienda Apartamento Estepona.pdf');
 
--- Insertar en la tabla ImagenesSubasta (solo un ejemplo, puedes añadir más si es necesario)
+-- Insertar en la tabla ImagenesSubasta
 INSERT INTO `ImagenesSubasta` (`id_subasta`, `url_imagen`, `descripcion`)
 VALUES 
-(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-1.png', 'Imagen de la subasta Estepona 1');
-(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-1.png', 'Imagen de la subasta Estepona 2');
-(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-1.png', 'Imagen de la subasta Estepona 3');
-(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-1.png', 'Imagen de la subasta Estepona 4');
+(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-1.png', 'Imagen de la subasta Estepona 1'),
+(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-2.png', 'Imagen de la subasta Estepona 2'),
+(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-3.png', 'Imagen de la subasta Estepona 3'),
+(@id_subasta, 'assets/img/ESTEPONA/Estepona-imagen-4.png', 'Imagen de la subasta Estepona 4');
