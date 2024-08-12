@@ -39,6 +39,7 @@ try {
 }
 
 
+
 function getSubastaImages($conn, $id_subasta)
 {
     $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
@@ -131,7 +132,6 @@ $puja_mas_alta = 0.00;
                 </div>
             </div>
 
-            <!-- Segunda columna -->
             <div id="columna2" class="lg:col-span-1">
                 <div class="bg-white p-6 rounded-xl border-3 border-blue-700">
                     <h2 class="text-xl text-center text-blue-700 font-bold mb-4">INFORMACIÓN</h2>
@@ -150,6 +150,18 @@ $puja_mas_alta = 0.00;
                             <p>Importe Depósito: <?= number_format($subasta['importe_deposito'], 2) ?> €</p>
                             <p>Puja Mínima: <?= htmlspecialchars($subasta['puja_minima']) ?></p>
                             <p>Tramos entre Pujas: <?= number_format($subasta['tramos_pujas'], 2) ?> €</p>
+
+                            <!-- Información del Catastro -->
+                            <h3 class="text-lg font-bold mt-4">Información del Catastro:</h3>
+                            <p>Referencia Catastral: <?= htmlspecialchars($subasta['ref_catastral']) ?></p>
+                            <p>Clase: <?= htmlspecialchars($subasta['clase']) ?></p>
+                            <p>Uso Principal: <?= htmlspecialchars($subasta['uso_principal']) ?></p>
+                            <p>Superficie Construida: <?= htmlspecialchars($subasta['sup_construida']) ?> m²</p>
+                            <p>Vivienda: <?= htmlspecialchars($subasta['vivienda']) ?> m²</p>
+                            <p>Garaje: <?= htmlspecialchars($subasta['garaje']) ?> m²</p>
+                            <p>Almacén: <?= htmlspecialchars($subasta['almacen']) ?> m²</p>
+                            <p>Año de Construcción: <?= htmlspecialchars($subasta['ano_construccion']) ?></p>
+                            <p>Enlace Catastro: <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" class="text-blue-500">Haz click aquí</a></p>
                         </div>
                         <div class="text-center">
                             <?php if (!empty($subasta['url_pdf_precios'])) : ?>
