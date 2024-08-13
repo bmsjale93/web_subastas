@@ -17,14 +17,17 @@ if (!$id_subasta) {
 
 try {
     // Consulta para obtener los detalles de la subasta incluyendo el tipo de subasta
-    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*, sd.precio_medio, sd.precio_venta_min, sd.precio_venta_medio, sd.precio_venta_max, sd.url_pdf_precios, ts.tipo_subasta, s.puja_mas_alta
-                        FROM Subastas s
-                        LEFT JOIN Catastro c ON s.id_subasta = c.id_subasta
-                        LEFT JOIN Valoraciones v ON s.id_subasta = v.id_subasta
-                        LEFT JOIN Localizaciones l ON s.id_subasta = l.id_subasta
-                        LEFT JOIN SubastaDetalles sd ON s.id_subasta = sd.id_subasta
-                        LEFT JOIN TiposSubasta ts ON s.id_tipo_subasta = ts.id_tipo_subasta
-                        WHERE s.id_subasta = :id_subasta");
+    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*, 
+                                   sd.precio_medio, sd.precio_venta_min, sd.precio_venta_medio, 
+                                   sd.precio_venta_max, sd.url_pdf_precios, sd.puja_mas_alta, 
+                                   ts.tipo_subasta
+                            FROM Subastas s
+                            LEFT JOIN Catastro c ON s.id_subasta = c.id_subasta
+                            LEFT JOIN Valoraciones v ON s.id_subasta = v.id_subasta
+                            LEFT JOIN Localizaciones l ON s.id_subasta = l.id_subasta
+                            LEFT JOIN SubastaDetalles sd ON s.id_subasta = sd.id_subasta
+                            LEFT JOIN TiposSubasta ts ON s.id_tipo_subasta = ts.id_tipo_subasta
+                            WHERE s.id_subasta = :id_subasta");
     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
     $stmt->execute();
     $subasta = $stmt->fetch(PDO::FETCH_ASSOC);
