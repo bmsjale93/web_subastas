@@ -38,8 +38,6 @@ try {
     die();
 }
 
-
-
 function getSubastaImages($conn, $id_subasta)
 {
     $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
@@ -47,7 +45,6 @@ function getSubastaImages($conn, $id_subasta)
     $stmt->execute();
     $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    // Si las imágenes están en la ruta /assets/, no necesitas agregar ningún prefijo
     return $images;
 }
 
@@ -61,8 +58,6 @@ function getSubastaDocuments($conn, $id_subasta)
 }
 
 $documents = getSubastaDocuments($conn, $id_subasta);
-
-
 $images = getSubastaImages($conn, $id_subasta);
 
 $latitud = $subasta['latitud'];
@@ -77,7 +72,7 @@ if (!is_numeric($latitud) || !is_numeric($altitud)) {
 $puja_mas_alta = $subasta['puja_mas_alta'];
 
 // Calcular el Precio de Venta Estimado
-$precio_venta_estimado = $subasta['precio_medio'] * $subasta['sup_construida'];
+$precio_venta_estimado = $subasta['precio_medio'] * $subasta['vivienda'];
 
 ?>
 
@@ -119,7 +114,7 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['sup_construida'];
             <div id="columna1" class="lg:col-span-1">
                 <div class="bg-blue-700 text-white py-6 pb-8 pt-8 rounded-xl shadow-md mb-4">
                     <h2 class="text-xl text-center font-bold">SUBASTA ACTUAL</h2>
-                    <p class="text-3xl text-center font-semibold"><?= number_format($puja_mas_alta, 2) ?> €</p>
+                    <p class="text-3xl text-center font-semibold"><?= number_format($puja_mas_alta, 2, ',', '.') ?> €</p>
                 </div>
 
                 <div class="bg-white text-blue-700 py-4 rounded-xl shadow-md mb-4 border-3 border-blue-700">
@@ -148,23 +143,23 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['sup_construida'];
                             <p>Fecha Conclusión: <?= date('d/m/Y', strtotime($subasta['fecha_conclusion'])) ?></p>
                             <p>Tipo de Subasta: <?= htmlspecialchars($subasta['tipo_subasta']) ?></p>
                             <p>Enlace Subasta: <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" class="text-blue-500">Haz click aquí</a></p>
-                            <p>Valor Subasta: <?= number_format($subasta['valor_subasta'], 2) ?> €</p>
-                            <p>Tasación: <?= number_format($subasta['tasacion'], 2) ?> €</p>
-                            <p>Importe Depósito: <?= number_format($subasta['importe_deposito'], 2) ?> €</p>
-                            <p>Puja Mínima: <?= htmlspecialchars($subasta['puja_minima']) ?></p>
-                            <p>Tramos entre Pujas: <?= number_format($subasta['tramos_pujas'], 2) ?> €</p>
-                            <p>Precio Metro Cuadrado: <?= number_format($subasta['precio_medio'], 2) ?> €/m²</p>
-                            <p>Precio Venta Estimado: <?= number_format($precio_venta_estimado, 2) ?> €</p>
+                            <p>Valor Subasta: <?= number_format($subasta['valor_subasta'], 2, ',', '.') ?> €</p>
+                            <p>Tasación: <?= number_format($subasta['tasacion'], 2, ',', '.') ?> €</p>
+                            <p>Importe Depósito: <?= number_format($subasta['importe_deposito'], 2, ',', '.') ?> €</p>
+                            <p>Puja Mínima: <?= number_format($subasta['puja_minima'], 2, ',', '.') ?> €</p>
+                            <p>Tramos entre Pujas: <?= number_format($subasta['tramos_pujas'], 2, ',', '.') ?> €</p>
+                            <p>Precio Metro Cuadrado: <?= number_format($subasta['precio_medio'], 2, ',', '.') ?> €/m²</p>
+                            <p>Precio Venta Estimado: <?= number_format($precio_venta_estimado, 2, ',', '.') ?> €</p>
 
                             <!-- Información del Catastro -->
                             <h3 class="text-lg font-bold mt-4">Información del Catastro:</h3>
                             <p>Referencia Catastral: <?= htmlspecialchars($subasta['ref_catastral']) ?></p>
                             <p>Clase: <?= htmlspecialchars($subasta['clase']) ?></p>
                             <p>Uso Principal: <?= htmlspecialchars($subasta['uso_principal']) ?></p>
-                            <p>Superficie Construida: <?= htmlspecialchars($subasta['sup_construida']) ?> m²</p>
-                            <p>Vivienda: <?= htmlspecialchars($subasta['vivienda']) ?> m²</p>
-                            <p>Garaje: <?= htmlspecialchars($subasta['garaje']) ?> m²</p>
-                            <p>Almacén: <?= htmlspecialchars($subasta['almacen']) ?> m²</p>
+                            <p>Superficie Construida: <?= number_format($subasta['sup_construida'], 2, ',', '.') ?> m²</p>
+                            <p>Vivienda: <?= number_format($subasta['vivienda'], 2, ',', '.') ?> m²</p>
+                            <p>Garaje: <?= number_format($subasta['garaje'], 2, ',', '.') ?> m²</p>
+                            <p>Almacén: <?= number_format($subasta['almacen'], 2, ',', '.') ?> m²</p>
                             <p>Año de Construcción: <?= htmlspecialchars($subasta['ano_construccion']) ?></p>
                             <p>Enlace Catastro: <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" class="text-blue-500">Haz click aquí</a></p>
                         </div>
@@ -242,7 +237,7 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['sup_construida'];
             // Benefit Calculator
             const benefitCalculatorContainer = document.getElementById('benefit-calculator');
             benefitCalculatorContainer.appendChild(renderBenefitCalculator({
-                constructedArea: <?= $subasta['sup_construida'] !== null ? $subasta['sup_construida'] : 0 ?>,
+                viviendaArea: <?= $subasta['vivienda'] !== null ? $subasta['vivienda'] : 0 ?>,
                 squareMeterValue: <?= $subasta['precio_medio'] !== null ? $subasta['precio_medio'] : 0 ?>,
                 garageArea: <?= $subasta['garaje'] !== null ? $subasta['garaje'] : 0 ?>,
                 garageSquareMeterValue: <?= $subasta['precio_medio'] !== null ? $subasta['precio_medio'] : 0 ?>,

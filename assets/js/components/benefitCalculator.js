@@ -46,7 +46,7 @@ export function renderBenefitCalculator(auction) {
       administrativeCosts;
 
     // Asegurarse de que todos los valores están presentes y son números válidos
-    const constructedArea = parseFloat(auction.constructedArea) || 0;
+    const viviendaArea = parseFloat(auction.viviendaArea) || 0; // Metros cuadrados de la vivienda
     const squareMeterValue = parseFloat(auction.squareMeterValue) || 0;
     const garageArea = parseFloat(auction.garageArea) || 0;
     const garageSquareMeterValue =
@@ -55,9 +55,9 @@ export function renderBenefitCalculator(auction) {
     const storageRoomSquareMeterValue =
       parseFloat(auction.storageRoomSquareMeterValue) || 0;
 
-    // Calcula el precio de venta recomendado
+    // Calcula el precio de venta recomendado basado en los metros cuadrados de la vivienda
     const calculatedSalePrice =
-      constructedArea * squareMeterValue +
+      viviendaArea * squareMeterValue +
       garageArea * garageSquareMeterValue +
       storageRoomArea * storageRoomSquareMeterValue;
 
@@ -76,23 +76,28 @@ export function renderBenefitCalculator(auction) {
         ? (calculatedBenefit / totalPurchaseCost) * 100
         : 0;
 
-    // Mostrar los resultados
+    // Mostrar los resultados con formato contable
     benefitResults.innerHTML = `
-      <p class="text-base font-medium">Compra tras Gastos Añadidos: ${totalPurchaseCost.toFixed(
-        2
+      <p class="text-base font-medium">Compra tras Gastos Añadidos: ${totalPurchaseCost.toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
       )}€</p>
-      <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toFixed(
-        2
+      <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
       )}€</p>
-      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toFixed(
-        2
+      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toLocaleString(
+        undefined,
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
       )}€</p>
       <div>
-        <p class="text-green-600 rounded mt-2 text-base font-semibold">Beneficio (€): ${calculatedBenefit.toFixed(
-          2
+        <p class="text-green-600 rounded mt-2 text-base font-semibold">Beneficio (€): ${calculatedBenefit.toLocaleString(
+          undefined,
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
         )}€</p>
-        <p class="text-green-600 rounded text-base font-semibold">Beneficio (%): ${calculatedBenefitPercent.toFixed(
-          2
+        <p class="text-green-600 rounded text-base font-semibold">Beneficio (%): ${calculatedBenefitPercent.toLocaleString(
+          undefined,
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
         )}%</p>
       </div>
     `;
