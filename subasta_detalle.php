@@ -96,7 +96,7 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['vivienda'];
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
-<body class="min-h-screen bg-gray-100">
+<body class="min-h-screen bg-gray-50">
     <div id="header">
         <div class="bg-white shadow-md py-4 flex items-center justify-between px-4">
             <a href="subastas.php" class="text-black p-2 rounded-full hover:bg-gray-200">
@@ -145,7 +145,7 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['vivienda'];
                             <p>Fecha Inicio: <?= date('d/m/Y', strtotime($subasta['fecha_inicio'])) ?></p>
                             <p>Fecha Conclusión: <?= date('d/m/Y', strtotime($subasta['fecha_conclusion'])) ?></p>
                             <p>Tipo de Subasta: <?= htmlspecialchars($subasta['tipo_subasta']) ?></p>
-                            <p>Enlace Subasta: <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" class="text-blue-500">Haz click aquí</a></p>
+                            <p>Enlace Subasta: <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" class="text-blue-500" target="_blank">Haz click aquí</a></p>
                             <p>Valor Subasta: <?= number_format($subasta['valor_subasta'], 2, ',', '.') ?> €</p>
                             <p>Cantidad Reclamada: <?= number_format($subasta['cantidad_reclamada'], 2, ',', '.') ?> €</p>
                             <p>Tasación: <?= number_format($subasta['tasacion'], 2, ',', '.') ?> €</p>
@@ -165,7 +165,7 @@ $precio_venta_estimado = $subasta['precio_medio'] * $subasta['vivienda'];
                             <p>Garaje: <?= number_format($subasta['garaje'], 2, ',', '.') ?> m²</p>
                             <p>Almacén: <?= number_format($subasta['almacen'], 2, ',', '.') ?> m²</p>
                             <p>Año de Construcción: <?= htmlspecialchars($subasta['ano_construccion']) ?></p>
-                            <p>Enlace Catastro: <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" class="text-blue-500">Haz click aquí</a></p>
+                            <p>Enlace Catastro: <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" class="text-blue-500" target="_blank">Haz click aquí</a></p>
                         </div>
                         <div class="text-center">
                             <?php if (!empty($subasta['url_pdf_precios'])) : ?>

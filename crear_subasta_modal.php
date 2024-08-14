@@ -18,26 +18,89 @@
                             <input type="text" class="form-control" id="direccion" name="direccion" required>
                         </div>
                         <div class="mb-3">
+                            <label for="cp" class="form-label">Código Postal</label>
+                            <input type="text" class="form-control" id="cp" name="cp" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="localidad" class="form-label">Localidad</label>
+                            <input type="text" class="form-control" id="localidad" name="localidad" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="provincia" class="form-label">Provincia</label>
+                            <input type="text" class="form-control" id="provincia" name="provincia" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha_conclusion" class="form-label">Fecha de Conclusión</label>
+                            <input type="date" class="form-control" id="fecha_conclusion" name="fecha_conclusion" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="enlace_subasta" class="form-label">Enlace Subasta</label>
+                            <input type="url" class="form-control" id="enlace_subasta" name="enlace_subasta">
+                        </div>
+                        <div class="mb-3">
                             <label for="valor_subasta" class="form-label">Valor Subasta (€)</label>
                             <input type="number" class="form-control" id="valor_subasta" name="valor_subasta" step="0.01" required>
                         </div>
                         <div class="mb-3">
-                            <label for="fecha_conclusion" class="form-label">Fecha Conclusión</label>
-                            <input type="date" class="form-control" id="fecha_conclusion" name="fecha_conclusion" required>
+                            <label for="tasacion" class="form-label">Tasación (€)</label>
+                            <input type="number" class="form-control" id="tasacion" name="tasacion" step="0.01">
                         </div>
                         <div class="mb-3">
-                            <label for="estado_subasta" class="form-label">Estado Subasta</label>
-                            <select class="form-control" id="estado_subasta" name="estado_subasta" required>
-                                <option value="Activa">Activa</option>
-                                <option value="Estudiando...">Estudiando...</option>
-                                <option value="Terminada">Terminada</option>
+                            <label for="importe_deposito" class="form-label">Importe Depósito (€)</label>
+                            <input type="number" class="form-control" id="importe_deposito" name="importe_deposito" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="puja_minima" class="form-label">Puja Mínima (€)</label>
+                            <input type="number" class="form-control" id="puja_minima" name="puja_minima" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="tramos_pujas" class="form-label">Tramos de Pujas</label>
+                            <input type="text" class="form-control" id="tramos_pujas" name="tramos_pujas">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidad_reclamada" class="form-label">Cantidad Reclamada (€)</label>
+                            <input type="number" class="form-control" id="cantidad_reclamada" name="cantidad_reclamada" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_tipo_subasta" class="form-label">Tipo de Subasta</label>
+                            <select class="form-control" id="id_tipo_subasta" name="id_tipo_subasta" required>
+                                <?php
+                                try {
+                                    include('config.php');  // Incluye la conexión a la base de datos
+                                    $stmt = $conn->query("SELECT id_tipo_subasta, tipo_subasta FROM TiposSubasta");
+                                    while ($tipo = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        echo "<option value='{$tipo['id_tipo_subasta']}'>{$tipo['tipo_subasta']}</option>";
+                                    }
+                                } catch (PDOException $e) {
+                                    echo "<option value=''>Error al cargar tipos de subasta</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_estado" class="form-label">Estado de la Subasta</label>
+                            <select class="form-control" id="id_estado" name="id_estado" required>
+                                <?php
+                                try {
+                                    $stmt = $conn->query("SELECT id_estado, estado FROM EstadosSubasta");
+                                    while ($estado = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        echo "<option value='{$estado['id_estado']}'>{$estado['estado']}</option>";
+                                    }
+                                } catch (PDOException $e) {
+                                    echo "<option value=''>Error al cargar estados de subasta</option>";
+                                }
+                                ?>
                             </select>
                         </div>
                     </div>
 
                     <!-- Paso 2: Localización -->
                     <div id="step2" class="step d-none">
-                        <h6>Localización de la Subasta</h6>
+                        <h6>Localización</h6>
                         <div class="mb-3">
                             <label for="latitud" class="form-label">Latitud</label>
                             <input type="text" class="form-control" id="latitud" name="latitud" required>
@@ -56,16 +119,16 @@
                             <input type="number" class="form-control" id="precio_medio" name="precio_medio" step="0.01" required>
                         </div>
                         <div class="mb-3">
-                            <label for="precio_venta_min" class="form-label">Precio Venta Mínimo (€)</label>
-                            <input type="number" class="form-control" id="precio_venta_min" name="precio_venta_min" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="precio_venta_medio" class="form-label">Precio Venta Medio (€)</label>
                             <input type="number" class="form-control" id="precio_venta_medio" name="precio_venta_medio" step="0.01" required>
                         </div>
                         <div class="mb-3">
-                            <label for="precio_venta_max" class="form-label">Precio Venta Máximo (€)</label>
-                            <input type="number" class="form-control" id="precio_venta_max" name="precio_venta_max" step="0.01" required>
+                            <label for="puja_mas_alta" class="form-label">Puja Más Alta (€)</label>
+                            <input type="number" class="form-control" id="puja_mas_alta" name="puja_mas_alta" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="pdf_precios" class="form-label">PDF de Precios</label>
+                            <input type="file" class="form-control" id="pdf_precios" name="pdf_precios" accept="application/pdf">
                         </div>
                     </div>
 
@@ -112,7 +175,7 @@
 
                     <!-- Paso 5: Valoraciones -->
                     <div id="step5" class="step d-none">
-                        <h6>Valoraciones de la Vivienda</h6>
+                        <h6>Valoraciones</h6>
                         <div class="mb-3">
                             <label for="fachada_y_exteriores" class="form-label">Fachada y Exteriores</label>
                             <input type="number" class="form-control" id="fachada_y_exteriores" name="fachada_y_exteriores" step="0.01" required>
@@ -163,11 +226,20 @@
                         </div>
                         <div class="mb-3">
                             <label for="tipo_de_vivienda" class="form-label">Tipo de Vivienda</label>
-                            <input type="number" class="form-control" id="tipo_de_vivienda" name="tipo_de_vivienda" step="0.01" required>
+                            <input type="text" class="form-control" id="tipo_de_vivienda" name="tipo_de_vivienda" required>
+                        </div>
+                    </div>
+
+                    <!-- Paso 6: Subir Imágenes y Documentos -->
+                    <div id="step6" class="step d-none">
+                        <h6>Imágenes y Documentos</h6>
+                        <div class="mb-3">
+                            <label for="imagenes_subasta" class="form-label">Imágenes de la Subasta</label>
+                            <input type="file" class="form-control" id="imagenes_subasta" name="imagenes_subasta[]" multiple accept="image/*">
                         </div>
                         <div class="mb-3">
-                            <label for="puntuacion_final" class="form-label">Puntuación Final</label>
-                            <input type="number" class="form-control" id="puntuacion_final" name="puntuacion_final" step="0.01" required>
+                            <label for="documentos_subasta" class="form-label">Documentos PDF</label>
+                            <input type="file" class="form-control" id="documentos_subasta" name="documentos_subasta[]" multiple accept="application/pdf">
                         </div>
                     </div>
                 </div>
@@ -194,7 +266,7 @@
     }
 
     function nextStep() {
-        if (currentStep < 5) {
+        if (currentStep < 6) {
             currentStep++;
             showStep(currentStep);
         }
@@ -211,8 +283,8 @@
 
     function updateButtons() {
         document.getElementById('prevStepBtn').disabled = currentStep === 1;
-        document.getElementById('nextStepBtn').classList.toggle('d-none', currentStep === 5);
-        document.getElementById('submitBtn').classList.toggle('d-none', currentStep !== 5);
+        document.getElementById('nextStepBtn').classList.toggle('d-none', currentStep === 6);
+        document.getElementById('submitBtn').classList.toggle('d-none', currentStep !== 6);
     }
 
     // Mostrar el primer paso al cargar la modal

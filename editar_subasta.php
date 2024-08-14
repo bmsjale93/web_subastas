@@ -10,131 +10,203 @@ include('config.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_subasta = $_POST['id_subasta'];
 
-    // Datos para la tabla Subastas
-    $direccion = $_POST['direccion'];
-    $valor_subasta = $_POST['valor_subasta'];
-    $fecha_conclusion = $_POST['fecha_conclusion'];
-    $estado_subasta = $_POST['estado_subasta'];
+    // Actualizar la tabla Subastas
+    $fieldsToUpdate = [];
 
-    // Datos para la tabla Localizaciones
-    $latitud = $_POST['latitud'];
-    $altitud = $_POST['altitud'];
-
-    // Datos para la tabla SubastaDetalles
-    $precio_medio = $_POST['precio_medio'];
-    $precio_venta_min = $_POST['precio_venta_min'];
-    $precio_venta_medio = $_POST['precio_venta_medio'];
-    $precio_venta_max = $_POST['precio_venta_max'];
-
-    // Datos para la tabla Catastro
-    $ref_catastral = $_POST['ref_catastral'];
-    $clase = $_POST['clase'];
-    $uso_principal = $_POST['uso_principal'];
-    $sup_construida = $_POST['sup_construida'];
-    $vivienda = $_POST['vivienda'];
-    $garaje = $_POST['garaje'];
-    $almacen = $_POST['almacen'];
-    $ano_construccion = $_POST['ano_construccion'];
-    $enlace_catastro = $_POST['enlace_catastro'];
-
-    // Datos para la tabla Valoraciones
-    $fachada_y_exteriores = $_POST['fachada_y_exteriores'];
-    $techo_y_canaletas = $_POST['techo_y_canaletas'];
-    $ventanas_y_puerta = $_POST['ventanas_y_puerta'];
-    $jardin_y_terrenos = $_POST['jardin_y_terrenos'];
-    $estado_estructuras = $_POST['estado_estructuras'];
-    $instalaciones_visibles = $_POST['instalaciones_visibles'];
-    $vecindario = $_POST['vecindario'];
-    $seguridad = $_POST['seguridad'];
-    $ruido_y_olores = $_POST['ruido_y_olores'];
-    $acceso_y_estacionamiento = $_POST['acceso_y_estacionamiento'];
-    $localizacion = $_POST['localizacion'];
-    $estado_inquilino = $_POST['estado_inquilino'];
-    $tipo_de_vivienda = $_POST['tipo_de_vivienda'];
-    $puntuacion_final = $_POST['puntuacion_final'];
-
-    try {
-        // Actualizar la tabla Subastas
-        $stmt = $conn->prepare("
-            UPDATE Subastas 
-            SET direccion = :direccion, valor_subasta = :valor_subasta, fecha_conclusion = :fecha_conclusion, id_estado = (SELECT id_estado FROM EstadosSubasta WHERE estado = :estado_subasta)
-            WHERE id_subasta = :id_subasta
-        ");
-        $stmt->bindParam(':direccion', $direccion);
-        $stmt->bindParam(':valor_subasta', $valor_subasta);
-        $stmt->bindParam(':fecha_conclusion', $fecha_conclusion);
-        $stmt->bindParam(':estado_subasta', $estado_subasta);
-        $stmt->bindParam(':id_subasta', $id_subasta);
-        $stmt->execute();
-
-        // Actualizar la tabla Localizaciones
-        $stmt = $conn->prepare("
-            UPDATE Localizaciones 
-            SET latitud = :latitud, altitud = :altitud 
-            WHERE id_subasta = :id_subasta
-        ");
-        $stmt->bindParam(':latitud', $latitud);
-        $stmt->bindParam(':altitud', $altitud);
-        $stmt->bindParam(':id_subasta', $id_subasta);
-        $stmt->execute();
-
-        // Actualizar la tabla SubastaDetalles
-        $stmt = $conn->prepare("
-            UPDATE SubastaDetalles 
-            SET precio_medio = :precio_medio, precio_venta_min = :precio_venta_min, precio_venta_medio = :precio_venta_medio, precio_venta_max = :precio_venta_max 
-            WHERE id_subasta = :id_subasta
-        ");
-        $stmt->bindParam(':precio_medio', $precio_medio);
-        $stmt->bindParam(':precio_venta_min', $precio_venta_min);
-        $stmt->bindParam(':precio_venta_medio', $precio_venta_medio);
-        $stmt->bindParam(':precio_venta_max', $precio_venta_max);
-        $stmt->bindParam(':id_subasta', $id_subasta);
-        $stmt->execute();
-
-        // Actualizar la tabla Catastro
-        $stmt = $conn->prepare("
-            UPDATE Catastro 
-            SET ref_catastral = :ref_catastral, clase = :clase, uso_principal = :uso_principal, sup_construida = :sup_construida, vivienda = :vivienda, garaje = :garaje, almacen = :almacen, ano_construccion = :ano_construccion, enlace_catastro = :enlace_catastro 
-            WHERE id_subasta = :id_subasta
-        ");
-        $stmt->bindParam(':ref_catastral', $ref_catastral);
-        $stmt->bindParam(':clase', $clase);
-        $stmt->bindParam(':uso_principal', $uso_principal);
-        $stmt->bindParam(':sup_construida', $sup_construida);
-        $stmt->bindParam(':vivienda', $vivienda);
-        $stmt->bindParam(':garaje', $garaje);
-        $stmt->bindParam(':almacen', $almacen);
-        $stmt->bindParam(':ano_construccion', $ano_construccion);
-        $stmt->bindParam(':enlace_catastro', $enlace_catastro);
-        $stmt->bindParam(':id_subasta', $id_subasta);
-        $stmt->execute();
-
-        // Actualizar la tabla Valoraciones
-        $stmt = $conn->prepare("
-            UPDATE Valoraciones 
-            SET fachada_y_exteriores = :fachada_y_exteriores, techo_y_canaletas = :techo_y_canaletas, ventanas_y_puerta = :ventanas_y_puerta, jardin_y_terrenos = :jardin_y_terrenos, estado_estructuras = :estado_estructuras, instalaciones_visibles = :instalaciones_visibles, vecindario = :vecindario, seguridad = :seguridad, ruido_y_olores = :ruido_y_olores, acceso_y_estacionamiento = :acceso_y_estacionamiento, localizacion = :localizacion, estado_inquilino = :estado_inquilino, tipo_de_vivienda = :tipo_de_vivienda, puntuacion_final = :puntuacion_final 
-            WHERE id_subasta = :id_subasta
-        ");
-        $stmt->bindParam(':fachada_y_exteriores', $fachada_y_exteriores);
-        $stmt->bindParam(':techo_y_canaletas', $techo_y_canaletas);
-        $stmt->bindParam(':ventanas_y_puerta', $ventanas_y_puerta);
-        $stmt->bindParam(':jardin_y_terrenos', $jardin_y_terrenos);
-        $stmt->bindParam(':estado_estructuras', $estado_estructuras);
-        $stmt->bindParam(':instalaciones_visibles', $instalaciones_visibles);
-        $stmt->bindParam(':vecindario', $vecindario);
-        $stmt->bindParam(':seguridad', $seguridad);
-        $stmt->bindParam(':ruido_y_olores', $ruido_y_olores);
-        $stmt->bindParam(':acceso_y_estacionamiento', $acceso_y_estacionamiento);
-        $stmt->bindParam(':localizacion', $localizacion);
-        $stmt->bindParam(':estado_inquilino', $estado_inquilino);
-        $stmt->bindParam(':tipo_de_vivienda', $tipo_de_vivienda);
-        $stmt->bindParam(':puntuacion_final', $puntuacion_final);
-        $stmt->bindParam(':id_subasta', $id_subasta);
-        $stmt->execute();
-
-        header('Location: subastas.php');
-        exit();
-    } catch (PDOException $e) {
-        echo "Error al actualizar la subasta: " . $e->getMessage();
+    if (!empty($_POST['direccion'])) {
+        $fieldsToUpdate['direccion'] = $_POST['direccion'];
     }
+    if (!empty($_POST['valor_subasta'])) {
+        $fieldsToUpdate['valor_subasta'] = $_POST['valor_subasta'];
+    }
+    if (!empty($_POST['fecha_conclusion'])) {
+        $fieldsToUpdate['fecha_conclusion'] = $_POST['fecha_conclusion'];
+    }
+    if (!empty($_POST['estado_subasta'])) {
+        $fieldsToUpdate['estado_subasta'] = $_POST['estado_subasta'];
+    }
+    if (!empty($_POST['cantidad_reclamada'])) {
+        $fieldsToUpdate['cantidad_reclamada'] = $_POST['cantidad_reclamada'];
+    }
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            if ($field == 'estado_subasta') {
+                $setClause[] = "id_estado = (SELECT id_estado FROM EstadosSubasta WHERE estado = :$field)";
+            } else {
+                $setClause[] = "$field = :$field";
+            }
+        }
+
+        $sql = "UPDATE Subastas SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    // Actualizar la tabla Localizaciones
+    $fieldsToUpdate = [];
+
+    if (!empty($_POST['latitud'])) {
+        $fieldsToUpdate['latitud'] = $_POST['latitud'];
+    }
+    if (!empty($_POST['altitud'])) {
+        $fieldsToUpdate['altitud'] = $_POST['altitud'];
+    }
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClause[] = "$field = :$field";
+        }
+
+        $sql = "UPDATE Localizaciones SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    // Actualizar la tabla SubastaDetalles
+    $fieldsToUpdate = [];
+
+    if (!empty($_POST['precio_medio'])) {
+        $fieldsToUpdate['precio_medio'] = $_POST['precio_medio'];
+    }
+    if (!empty($_POST['precio_venta_medio'])) {
+        $fieldsToUpdate['precio_venta_medio'] = $_POST['precio_venta_medio'];
+    }
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClause[] = "$field = :$field";
+        }
+
+        $sql = "UPDATE SubastaDetalles SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    // Actualizar la tabla Catastro
+    $fieldsToUpdate = [];
+
+    if (!empty($_POST['ref_catastral'])) {
+        $fieldsToUpdate['ref_catastral'] = $_POST['ref_catastral'];
+    }
+    if (!empty($_POST['clase'])) {
+        $fieldsToUpdate['clase'] = $_POST['clase'];
+    }
+    if (!empty($_POST['uso_principal'])) {
+        $fieldsToUpdate['uso_principal'] = $_POST['uso_principal'];
+    }
+    if (!empty($_POST['sup_construida'])) {
+        $fieldsToUpdate['sup_construida'] = $_POST['sup_construida'];
+    }
+    if (!empty($_POST['vivienda'])) {
+        $fieldsToUpdate['vivienda'] = $_POST['vivienda'];
+    }
+    if (!empty($_POST['garaje'])) {
+        $fieldsToUpdate['garaje'] = $_POST['garaje'];
+    }
+    if (!empty($_POST['almacen'])) {
+        $fieldsToUpdate['almacen'] = $_POST['almacen'];
+    }
+    if (!empty($_POST['ano_construccion'])) {
+        $fieldsToUpdate['ano_construccion'] = $_POST['ano_construccion'];
+    }
+    if (!empty($_POST['enlace_catastro'])) {
+        $fieldsToUpdate['enlace_catastro'] = $_POST['enlace_catastro'];
+    }
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClause[] = "$field = :$field";
+        }
+
+        $sql = "UPDATE Catastro SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    // Actualizar la tabla Valoraciones
+    $fieldsToUpdate = [];
+
+    if (!empty($_POST['fachada_y_exteriores'])) {
+        $fieldsToUpdate['fachada_y_exteriores'] = $_POST['fachada_y_exteriores'];
+    }
+    if (!empty($_POST['techo_y_canaletas'])) {
+        $fieldsToUpdate['techo_y_canaletas'] = $_POST['techo_y_canaletas'];
+    }
+    if (!empty($_POST['ventanas_y_puerta'])) {
+        $fieldsToUpdate['ventanas_y_puerta'] = $_POST['ventanas_y_puerta'];
+    }
+    if (!empty($_POST['jardin_y_terrenos'])) {
+        $fieldsToUpdate['jardin_y_terrenos'] = $_POST['jardin_y_terrenos'];
+    }
+    if (!empty($_POST['estado_estructuras'])) {
+        $fieldsToUpdate['estado_estructuras'] = $_POST['estado_estructuras'];
+    }
+    if (!empty($_POST['instalaciones_visibles'])) {
+        $fieldsToUpdate['instalaciones_visibles'] = $_POST['instalaciones_visibles'];
+    }
+    if (!empty($_POST['vecindario'])) {
+        $fieldsToUpdate['vecindario'] = $_POST['vecindario'];
+    }
+    if (!empty($_POST['seguridad'])) {
+        $fieldsToUpdate['seguridad'] = $_POST['seguridad'];
+    }
+    if (!empty($_POST['ruido_y_olores'])) {
+        $fieldsToUpdate['ruido_y_olores'] = $_POST['ruido_y_olores'];
+    }
+    if (!empty($_POST['acceso_y_estacionamiento'])) {
+        $fieldsToUpdate['acceso_y_estacionamiento'] = $_POST['acceso_y_estacionamiento'];
+    }
+    if (!empty($_POST['localizacion'])) {
+        $fieldsToUpdate['localizacion'] = $_POST['localizacion'];
+    }
+    if (!empty($_POST['estado_inquilino'])) {
+        $fieldsToUpdate['estado_inquilino'] = $_POST['estado_inquilino'];
+    }
+    if (!empty($_POST['tipo_de_vivienda'])) {
+        $fieldsToUpdate['tipo_de_vivienda'] = $_POST['tipo_de_vivienda'];
+    }
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClause[] = "$field = :$field";
+        }
+
+        $sql = "UPDATE Valoraciones SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    header('Location: subastas.php');
+    exit();
 }
