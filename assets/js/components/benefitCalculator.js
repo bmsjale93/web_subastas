@@ -1,107 +1,80 @@
-export function renderBenefitCalculator(auction) {
-  const container = document.createElement("div");
-  container.className =
-    "bg-white p-6 rounded-xl shadow-md mb-4 border-3 border-blue-700";
+document.addEventListener("DOMContentLoaded", () => {
+    const recalcularBtn = document.getElementById("recalcular-btn");
+    const calcularResultadoBtn = document.getElementById("calcular-resultado-btn");
 
-  container.innerHTML = `
-    <h3 class="text-xl text-center font-bold text-blue-700">CALCULADORA BENEFICIO</h3>
-    <div class="mb-4">
-        <label class="block text-gray-700 text-sm text-center font-bold mb-2 mt-4">Ingresa un Precio de Compra:</label>
-        <input type="number" id="purchasePrice" class="appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-    </div>
-    <button class="bg-blue-700 hover:bg-black text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-300 ease-in-out">
-        Calcular Resultado
-    </button>
-    <div id="benefitResults" class="mt-4"></div>
-  `;
+    // Función para formatear los valores en el formato deseado
+    function formatearValor(valor) {
+        return valor.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    }
 
-  const purchasePriceInput = container.querySelector("#purchasePrice");
-  const benefitResults = container.querySelector("#benefitResults");
-  const button = container.querySelector("button");
+    // Función para convertir cualquier valor de entrada a número
+    function convertirAFloat(valor) {
+        if (typeof valor === 'string') {
+            valor = valor.replace(/\./g, '').replace(',', '.').replace('€', '').trim();
+        }
+        return parseFloat(valor) || 0;
+    }
 
-  button.addEventListener("click", () => {
-    const purchasePrice = parseFloat(purchasePriceInput.value) || 0;
+    if (recalcularBtn) {
+        recalcularBtn.addEventListener("click", () => {
+            const precioVivienda = convertirAFloat(document.getElementById("precio-vivienda").value);
+            const precioTrastero = convertirAFloat(document.getElementById("precio-trastero").value);
+            const precioGaraje = convertirAFloat(document.getElementById("precio-garaje").value);
 
-    // Impuestos y gastos fijos
-    const itpPercentage = 10.0; // ITP
-    const notaryCosts = 1000; // Gastos notariales
-    const registryCosts = 500; // Registro de la propiedad
-    const administrativeCosts = 800; // Gastos administrativos
-    const addedCostsPercentage = 7.0; // Gastos añadidos
+            const precioVentaEstimado = (precioVivienda * metrosVivienda) +
+                                        (precioTrastero * metrosTrastero) +
+                                        (precioGaraje * metrosGaraje);
 
-    const irpfPercentage = 21.0; // IRPF sobre el beneficio
-    const saleCommissionPercentage = 3.0; // Comisión de venta
-    const saleNotaryCosts = 1000; // Gastos notariales de venta
-    const saleRegistryCosts = 500; // Gastos de registro de venta
+            document.getElementById("precio-venta").textContent = formatearValor(precioVentaEstimado);
+        });
+    }
 
-    // Calcula los costos adicionales de compra
-    const addedCosts = (purchasePrice * addedCostsPercentage) / 100;
-    const itpCosts = (purchasePrice * itpPercentage) / 100;
-    const totalPurchaseCost =
-      purchasePrice +
-      addedCosts +
-      itpCosts +
-      notaryCosts +
-      registryCosts +
-      administrativeCosts;
+    if (calcularResultadoBtn) {
+        calcularResultadoBtn.addEventListener("click", () => {
+            const purchasePrice = convertirAFloat(document.getElementById("precio-compra").value);
+            const precioVenta = convertirAFloat(document.getElementById("precio-venta").textContent);
 
-    // Asegurarse de que todos los valores están presentes y son números válidos
-    const viviendaArea = parseFloat(auction.viviendaArea) || 0; // Metros cuadrados de la vivienda
-    const squareMeterValue = parseFloat(auction.squareMeterValue) || 0;
-    const garageArea = parseFloat(auction.garageArea) || 0;
-    const garageSquareMeterValue =
-      parseFloat(auction.garageSquareMeterValue) || 0;
-    const storageRoomArea = parseFloat(auction.storageRoomArea) || 0;
-    const storageRoomSquareMeterValue =
-      parseFloat(auction.storageRoomSquareMeterValue) || 0;
+            const itp = document.getElementById("itp").checked ? purchasePrice * 0.1 : 0;
+            const gastosNotarialesCompra = document.getElementById("gastos-notariales-compra").checked ? 1000 : 0;
+            const registroPropiedadCompra = document.getElementById("registro-propiedad-compra").checked ? 500 : 0;
+            const gastosAdministrativosCompra = document.getElementById("gastos-administrativos-compra").checked ? 800 : 0;
+            const gastosAnadidos = document.getElementById("gastos-anadidos").checked ? purchasePrice * 0.07 : 0;
 
-    // Calcula el precio de venta recomendado basado en los metros cuadrados de la vivienda
-    const calculatedSalePrice =
-      viviendaArea * squareMeterValue +
-      garageArea * garageSquareMeterValue +
-      storageRoomArea * storageRoomSquareMeterValue;
+            const totalCompraTrasGastos = purchasePrice + itp + gastosNotarialesCompra + registroPropiedadCompra + gastosAdministrativosCompra + gastosAnadidos;
 
-    // Cálculo de costos de venta
-    const saleCommission =
-      (calculatedSalePrice * saleCommissionPercentage) / 100;
-    const saleIRPFCosts = (calculatedSalePrice * irpfPercentage) / 100;
-    const totalSaleCosts =
-      saleCommission + saleIRPFCosts + saleNotaryCosts + saleRegistryCosts;
+            const irpf = document.getElementById("irpf").checked ? precioVenta * 0.21 : 0;
+            const comisionVenta = document.getElementById("comision-venta").checked ? precioVenta * 0.03 : 0;
+            const gastosNotarialesVenta = document.getElementById("gastos-notariales-venta").checked ? 1000 : 0;
+            const registroPropiedadVenta = document.getElementById("registro-propiedad-venta").checked ? 500 : 0;
+            const gastosRegistro = document.getElementById("gastos-registro").checked ? 500 : 0;
 
-    // Cálculo del beneficio y porcentaje
-    const calculatedBenefit =
-      calculatedSalePrice - totalPurchaseCost - totalSaleCosts;
-    const calculatedBenefitPercent =
-      totalPurchaseCost !== 0
-        ? (calculatedBenefit / totalPurchaseCost) * 100
-        : 0;
+            const totalCostosVenta = irpf + comisionVenta + gastosNotarialesVenta + registroPropiedadVenta + gastosRegistro;
 
-    // Mostrar los resultados con formato contable
-    benefitResults.innerHTML = `
-      <p class="text-base font-medium">Compra tras Gastos Añadidos: ${totalPurchaseCost.toLocaleString(
-        undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      )}€</p>
-      <p class="text-base font-medium">Precio Venta Recomendado: ${calculatedSalePrice.toLocaleString(
-        undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      )}€</p>
-      <p class="text-base font-medium">Costos de Venta: ${totalSaleCosts.toLocaleString(
-        undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      )}€</p>
-      <div>
-        <p class="text-green-600 rounded mt-2 text-base font-semibold">Beneficio (€): ${calculatedBenefit.toLocaleString(
-          undefined,
-          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        )}€</p>
-        <p class="text-green-600 rounded text-base font-semibold">Beneficio (%): ${calculatedBenefitPercent.toLocaleString(
-          undefined,
-          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        )}%</p>
-      </div>
-    `;
-  });
+            const beneficio = precioVenta - totalCompraTrasGastos - totalCostosVenta;
+            const beneficioPorcentaje = (beneficio / totalCompraTrasGastos) * 100;
 
-  return container;
-}
+            document.getElementById("resultados-calculadora").innerHTML = `
+                <div class="col-6 text-left">
+                    <div class="bg-gray-400 p-3 rounded-lg mb-2 shadow-md">
+                        <h5 class="text-sm font-semibold text-white">COMPRA TRAS GASTOS:</h5>
+                        <p class="text-xl font-bold text-white">${formatearValor(totalCompraTrasGastos)}</p>
+                    </div>
+                    <div class="bg-gray-400 p-3 rounded-lg shadow-md">
+                        <h5 class="text-sm font-semibold text-white">COSTOS DE VENTA:</h5>
+                        <p class="text-xl font-bold text-white">${formatearValor(totalCostosVenta)}</p>
+                    </div>
+                </div>
+                <div class="col-6 text-right">
+                    <div class="bg-green-600 text-white p-3 rounded-lg mb-2 shadow-md">
+                        <h5 class="text-sm font-semibold">BENEFICIO (€):</h5>
+                        <p class="text-xl font-bold">${formatearValor(beneficio)}</p>
+                    </div>
+                    <div class="bg-green-600 text-white p-3 rounded-lg shadow-md">
+                        <h5 class="text-sm font-semibold">BENEFICIO (%):</h5>
+                        <p class="text-xl font-bold">${beneficioPorcentaje.toFixed(2)}%</p>
+                    </div>
+                </div>
+            `;
+        });
+    }
+});

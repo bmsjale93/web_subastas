@@ -1,5 +1,5 @@
 <?php
-include('config.php'); // Incluye la conexión a la base de datos
+include('assets/php/database/config.php'); // Incluye la conexión a la base de datos
 
 try {
     // Seleccionar todos los usuarios

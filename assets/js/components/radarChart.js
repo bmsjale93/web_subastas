@@ -2,11 +2,30 @@ export function renderRadarChart(qualities) {
   const labels = Object.keys(qualities);
   const data = Object.values(qualities);
 
-  const container = document.createElement("div");
-  container.className = "relative h-80 w-full bg-white";
-
   const canvas = document.createElement("canvas");
-  container.appendChild(canvas);
+  canvas.style.width = "100%";
+
+  // Función para ajustar la altura del canvas según el tamaño de la pantalla
+  function adjustCanvasHeight() {
+    const screenWidth = window.innerWidth;
+
+    if (screenWidth >= 1200) {
+      // Pantallas grandes (escritorio)
+      canvas.style.height = "700px";
+    } else if (screenWidth >= 768) {
+      // Pantallas medianas (tabletas, iPad)
+      canvas.style.height = "500px";
+    } else {
+      // Pantallas pequeñas (móviles)
+      canvas.style.height = "300px";
+    }
+  }
+
+  // Llamar a la función para ajustar la altura al cargar la página
+  adjustCanvasHeight();
+
+  // Ajustar la altura cuando se redimensiona la ventana
+  window.addEventListener("resize", adjustCanvasHeight);
 
   function loadChartScript(callback) {
     if (typeof Chart !== "undefined") {
@@ -48,9 +67,11 @@ export function renderRadarChart(qualities) {
               position: "top",
               labels: {
                 font: {
-                  size: 14,
+                  size: 16,
+                  family: "'Poppins', sans-serif",
+                  weight: 500,
                 },
-                color: "#1D4ED8",
+                color: "#000",
               },
             },
             tooltip: {
@@ -68,7 +89,11 @@ export function renderRadarChart(qualities) {
               ticks: {
                 stepSize: 1,
                 backdropColor: "rgba(255, 255, 255, 0)",
-                color: "#333",
+                color: "#000",
+                font: {
+                  size: 12,
+                  family: "'Roboto', sans-serif",
+                },
               },
               grid: {
                 color: "rgba(200, 200, 200, 0.5)",
@@ -79,8 +104,10 @@ export function renderRadarChart(qualities) {
               pointLabels: {
                 font: {
                   size: 14,
+                  weight: 500,
+                  family: "'Poppins', sans-serif",
                 },
-                color: "#333",
+                color: "#000",
               },
             },
           },
@@ -93,5 +120,5 @@ export function renderRadarChart(qualities) {
 
   loadChartScript(initializeChart);
 
-  return container;
+  return canvas; // Devuelve el canvas en lugar del contenedor
 }

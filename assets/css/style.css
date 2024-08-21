@@ -4,3 +4,254 @@
 .font-poppins {
     font-family: 'Poppins', sans-serif;
 }
+
+.subasta-card {
+    display: flex;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 450px;
+}
+
+.subasta-card:hover {
+    transform: scale(1.05);
+    box-shadow: 2px 16px 19px rgba(0, 0, 0, 0.25);
+}
+
+.subasta-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0 10px 10px 0;
+}
+
+.subasta-card-body {
+    flex: 1;
+    padding: 8px;
+}
+
+.subasta-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.subasta-card-location {
+    font-size: 16px;
+    font-weight: 600;
+    color: #9CA3AF;
+    margin-bottom: 12px;
+}
+
+.subasta-card-info p {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.subasta-card-buttons {
+    display: flex;
+    flex-direction: column; /* Alinea botones de forma vertical */
+    align-items: center;
+}
+
+.subasta-card-buttons a,
+.subasta-card-buttons button {
+    text-align: center;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    width: 100%; /* Ajusta el ancho del botón */
+    margin-bottom: 8px; /* Espacio entre los botones */
+}
+
+.subasta-card-buttons .bg-blue-700 {
+    background-color: #2b6cb0;
+}
+
+.subasta-card-buttons .bg-blue-700:hover {
+    background-color: #2c5282;
+}
+
+.subasta-card-buttons .bg-yellow-500 {
+    background-color: #ecc94b;
+}
+
+.subasta-card-buttons .bg-yellow-500:hover {
+    background-color: #d69e2e;
+}
+
+.subasta-card-buttons .bg-red-600 {
+    background-color: #e53e3e;
+}
+
+.subasta-card-buttons .bg-red-600:hover {
+    background-color: #c53030;
+}
+
+.subasta-card-status {
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.subasta-card-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.subasta-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.today {
+    border: 5px solid #002b4e; /* Borde azul claro */
+    box-sizing: border-box;
+}
+
+/* Para Chrome, Safari, Opera */
+input[type='range']::-webkit-slider-runnable-track {
+    background: #f7fafc; /* Fondo gris muy claro */
+    border-radius: 10px;
+    border: 2px solid #d1d5db; /* Borde de 4px de color gris */
+}
+
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #1a202c; /* Circulo para el rango color gray-900 */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+input[type='range']:hover::-webkit-slider-thumb {
+    background: #2d3748; /* Fondo del círculo en hover */
+}
+
+@media (max-width: 990px) {
+    .row.flex {
+        flex-direction: column;
+    }
+
+    .col-lg-8, .col-lg-4, .col-md-8, .col-md-4 {
+        width: 100%;
+    }
+
+    .mb-4.sm\:mb-0 {
+        margin-bottom: 1rem;
+    }
+}
+
+.custom-prev-step-btn {
+    background-color: #f0f0f0; /* Color de fondo personalizado */
+    color: #333; /* Color del texto */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.custom-prev-step-btn:hover {
+    background-color: #e0e0e0; /* Efecto hover */
+}
+
+.custom-next-step-btn {
+    background-color: #007bff; /* Color de fondo personalizado */
+    color: #fff; /* Color del texto */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.custom-next-step-btn:hover {
+    background-color: #1E3A8A; /* Efecto hover */
+}
+
+.progress-container {
+    position: relative;
+    height: 1rem;
+    background-color: #f3f4f6; /* Gris claro para el fondo de la barra */
+    border-radius: 9999px; /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 9999px; /* Bordes redondeados en la barra de progreso */
+    transition: width 0.3s ease-in-out; /* Transición suave */
+}
+
+    .drop-zone {
+        border: 2px dashed #cbd5e0;
+        border-radius: 5px;
+        padding: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .drop-zone:hover {
+        background-color: #e2e8f0;
+    }
+
+    .drop-zone.bg-blue-50 {
+        background-color: #ebf8ff;
+    }
+
+    .custom-prev-step-btn,
+    .custom-next-step-btn {
+        background-color: #1E3A8A;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .custom-prev-step-btn:hover,
+    .custom-next-step-btn:hover {
+        background-color: #2c5282;
+    }
+
+    .custom-prev-step-btn:disabled {
+        background-color: #a0aec0;
+        cursor: not-allowed;
+    }
+
+/* Ensure the gallery occupies the full space */
+#gallery-container, .carousel-inner, .carousel-item {
+    height: 100%;
+    width: 100%;
+}
+
+/* Remove any padding or margins */
+#gallery-container {
+    padding: 0;
+    margin: 0;
+}
+
+ul, ol {
+    list-style: disc; /* Muestra las viñetas por defecto */
+    padding-left: 20px;
+}
+
+li {
+    list-style-position: outside;
+    margin-bottom: 5px;
+}

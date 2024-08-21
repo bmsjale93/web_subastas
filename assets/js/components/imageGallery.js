@@ -1,16 +1,14 @@
 export function renderImageGallery(images) {
+  // Crear un nuevo contenedor para la galería
   const galleryContainer = document.createElement("div");
-  galleryContainer.className =
-    "bg-white p-6 rounded-xl border-3 border-blue-700";
+  galleryContainer.className = "relative w-full";
 
-  const galleryTitle = document.createElement("h2");
-  galleryTitle.className = "text-xl text-center text-blue-700 font-bold mb-4";
-  galleryTitle.textContent = "GALERÍA DE IMÁGENES";
-  galleryContainer.appendChild(galleryTitle);
+  const sliderContainer = document.createElement("div");
+  sliderContainer.className =
+    "relative w-full overflow-hidden rounded-xl shadow-lg";
 
-  const gridContainer = document.createElement("div");
-  gridContainer.className =
-    "grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2";
+  const imageTrack = document.createElement("div");
+  imageTrack.className = "flex transition-transform duration-300 ease-in-out";
 
   let modalElement = null;
   let currentImageIndex = 0;
@@ -27,25 +25,25 @@ export function renderImageGallery(images) {
       modalElement.className =
         "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75";
       modalElement.innerHTML = `
-        <div class="relative">
-            <button id="closeModal" class="absolute top-2 right-2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <button id="prevImage" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <img src="${images[currentImageIndex]}" alt="Imagen en tamaño completo" class="rounded-lg max-w-full max-h-screen">
-            <button id="nextImage" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-        </div>
-      `;
+                <div class="relative">
+                    <button id="closeModal" class="absolute top-2 right-2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <button id="prevImage" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <img src="${images[currentImageIndex]}" alt="Imagen en tamaño completo" class="rounded-lg max-w-full max-h-screen">
+                    <button id="nextImage" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            `;
       document.body.appendChild(modalElement);
 
       modalElement
@@ -73,21 +71,55 @@ export function renderImageGallery(images) {
 
   images.forEach((src, index) => {
     const imageWrapper = document.createElement("div");
-    imageWrapper.className = "relative";
+    imageWrapper.className = "w-full flex-shrink-0";
 
     const imageElement = document.createElement("img");
     imageElement.src = src;
     imageElement.alt = `Imagen ${index + 1}`;
-    imageElement.className =
-      "rounded-lg cursor-pointer object-cover w-full h-auto";
+    imageElement.className = "cursor-pointer object-cover w-full h-auto";
 
     imageElement.addEventListener("click", () => openModal(index));
 
     imageWrapper.appendChild(imageElement);
-    gridContainer.appendChild(imageWrapper);
+    imageTrack.appendChild(imageWrapper);
   });
 
-  galleryContainer.appendChild(gridContainer);
+  sliderContainer.appendChild(imageTrack);
+  galleryContainer.appendChild(sliderContainer);
+
+  // Flechas de navegación
+  const prevButton = document.createElement("button");
+  prevButton.className =
+    "absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
+  prevButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    `;
+
+  const nextButton = document.createElement("button");
+  nextButton.className =
+    "absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
+  nextButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+    `;
+
+  prevButton.addEventListener("click", () => {
+    currentImageIndex =
+      currentImageIndex > 0 ? currentImageIndex - 1 : images.length - 1;
+    imageTrack.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+  });
+
+  nextButton.addEventListener("click", () => {
+    currentImageIndex =
+      currentImageIndex < images.length - 1 ? currentImageIndex + 1 : 0;
+    imageTrack.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+  });
+
+  galleryContainer.appendChild(prevButton);
+  galleryContainer.appendChild(nextButton);
 
   return galleryContainer;
 }
