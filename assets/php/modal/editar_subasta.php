@@ -11,12 +11,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Función para convertir valores numéricos a un formato adecuado para MySQL
 function convertirDecimal($valor)
 {
-    // Eliminar símbolo de moneda y separadores de miles
     $valor = str_replace(['€', '.', ','], ['', '', '.'], $valor);
-    // Convertir a float
     return floatval($valor);
 }
 
@@ -26,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Actualizar la tabla Subastas
     $fieldsToUpdate = [];
 
-    // Información Básica
     if (!empty($_POST['direccion'])) {
         $fieldsToUpdate['direccion'] = $_POST['direccion'];
     }
@@ -205,7 +201,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = basename($_FILES['nuevas_imagenes']['name'][$key]);
             $targetFilePath = $uploadDir . $fileName;
 
-            // Manejo de nombres duplicados
             $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
             $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
             $counter = 1;
@@ -223,40 +218,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                 $stmt->execute();
 
-                // Guardar el ID de la imagen insertada
                 $nuevasImagenesIds[] = $conn->lastInsertId();
             }
         }
     }
 
-    if (!empty($nuevasImagenesIds)) {
-        $stmt = $conn->prepare("SELECT id_imagen, url_imagen FROM ImagenesSubasta WHERE id_imagen IN (" . implode(',', $nuevasImagenesIds) . ")");
-        $stmt->execute();
-        $nuevasImagenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $imagenes = []; // Asegúrate de inicializar esta variable
 
-        echo json_encode(['success' => true, 'imagenes' => $nuevasImagenes]);
+    // Obtener las imágenes existentes
+    $stmt = $conn->prepare("SELECT id_imagen, url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
+    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+    $stmt->execute();
+    $imagenesExistentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Combinar imágenes existentes con nuevas
+    $imagenes = array_merge($imagenesExistentes, $nuevasImagenesIds);
+
+    if (!empty($imagenes)) {
+        echo json_encode(['success' => true, 'imagenes' => $imagenes]);
     } else {
         echo json_encode(['success' => false, 'error' => 'No se subieron imágenes nuevas.']);
     }
-
-    // Aquí se generan todas las imágenes (existentes y nuevas) para el formulario
-    $imagenes = array_merge($imagenes, $nuevasImagenesIds);
 
     // Eliminar imágenes seleccionadas
     if (!empty($_POST['imagenes_a_eliminar'])) {
         $imagenesAEliminar = explode(',', $_POST['imagenes_a_eliminar']);
         foreach ($imagenesAEliminar as $idImagen) {
-            // Obtener la URL de la imagen para eliminar el archivo
             $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
             $stmt->bindParam(':id_imagen', $idImagen, PDO::PARAM_INT);
             $stmt->execute();
             $imagen = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($imagen && file_exists(__DIR__ . '/../../../' . $imagen['url_imagen'])) {
-                unlink(__DIR__ . '/../../../' . $imagen['url_imagen']);  // Eliminar el archivo
+                unlink(__DIR__ . '/../../../' . $imagen['url_imagen']);
             }
 
-            // Luego, eliminar la referencia en la base de datos
             $stmt = $conn->prepare("DELETE FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
             $stmt->bindParam(':id_imagen', $idImagen, PDO::PARAM_INT);
             $stmt->execute();
@@ -266,12 +262,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['imagen_portada'])) {
         $id_imagen_portada = $_POST['imagen_portada'];
 
-        // Eliminar la portada existente para esta subasta
         $stmt = $conn->prepare("DELETE FROM PortadaSubasta WHERE id_subasta = :id_subasta");
         $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
         $stmt->execute();
 
-        // Insertar la nueva portada seleccionada
         $stmt = $conn->prepare("INSERT INTO PortadaSubasta (id_subasta, id_imagen) VALUES (:id_subasta, :id_imagen)");
         $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
         $stmt->bindParam(':id_imagen', $id_imagen_portada, PDO::PARAM_INT);
@@ -311,21 +305,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Eliminar documentos seleccionados
     if (!empty($_POST['documentos_a_eliminar'])) {
         $documentosAEliminar = explode(',', $_POST['documentos_a_eliminar']);
         foreach ($documentosAEliminar as $idDocumento) {
-            // Obtener la URL del documento para eliminar el archivo
             $stmt = $conn->prepare("SELECT url_documento FROM Documentos WHERE id_documento = :id_documento");
             $stmt->bindParam(':id_documento', $idDocumento, PDO::PARAM_INT);
             $stmt->execute();
             $documento = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($documento && file_exists(__DIR__ . '/../../../' . $documento['url_documento'])) {
-                unlink(__DIR__ . '/../../../' . $documento['url_documento']);  // Eliminar el archivo
+                unlink(__DIR__ . '/../../../' . $documento['url_documento']);
             }
 
-            // Eliminar la referencia en la base de datos
             $stmt = $conn->prepare("DELETE FROM Documentos WHERE id_documento = :id_documento");
             $stmt->bindParam(':id_documento', $idDocumento, PDO::PARAM_INT);
             $stmt->execute();
