@@ -192,7 +192,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-
     // Gestionar las imágenes
     if (!empty($_POST['imagen_portada'])) {
         // Usar la tabla PortadaSubasta para establecer la portada
@@ -207,7 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        $uploadDir = '/Applications/MAMP/htdocs/subastas_fdm/assets/img/VIVIENDAS/';
+        // Rutas relativas a partir del directorio actual del script
+        $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
 
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -217,6 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = basename($_FILES['nuevas_imagenes']['name'][$key]);
             $targetFilePath = $uploadDir . $fileName;
 
+            // Manejo de nombres duplicados
             $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
             $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
             $counter = 1;
@@ -227,13 +228,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $counter++;
             }
 
+            // Verificar si la subida fue exitosa
             if (move_uploaded_file($tmpName, $targetFilePath)) {
                 // Guardar la ruta relativa en la base de datos
                 $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
                 $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
                 $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
-                $stmt->bindParam(':url_imagen', $relativeFilePath);
+                $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                 $stmt->execute();
+            } else {
+                // Manejo de errores en la subida
+                error_log("Error al subir la imagen: " . $_FILES['nuevas_imagenes']['name'][$key]);
             }
         }
     }
@@ -248,8 +253,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $imagen = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($imagen && file_exists('/Applications/MAMP/htdocs/subastas_fdm/' . $imagen['url_imagen'])) {
-                unlink('/Applications/MAMP/htdocs/subastas_fdm/' . $imagen['url_imagen']);  // Eliminar el archivo
+            if ($imagen && file_exists(__DIR__ . '/../../../' . $imagen['url_imagen'])) {
+                unlink(__DIR__ . '/../../../' . $imagen['url_imagen']);  // Eliminar el archivo
             }
 
             // Luego, eliminar la referencia en la base de datos
@@ -261,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Gestionar los documentos
     if (isset($_FILES['nuevos_documentos']) && !empty($_FILES['nuevos_documentos']['name'][0])) {
-        $uploadDir = '../../documentos/';
+        $uploadDir = __DIR__ . '/../../../documentos/';
 
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -302,8 +307,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $documento = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($documento && file_exists('../../' . $documento['url_documento'])) {
-                unlink('../../' . $documento['url_documento']);  // Eliminar el archivo
+            if ($documento && file_exists(__DIR__ . '/../../../' . $documento['url_documento'])) {
+                unlink(__DIR__ . '/../../../' . $documento['url_documento']);  // Eliminar el archivo
             }
 
             // Eliminar la referencia en la base de datos
