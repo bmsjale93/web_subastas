@@ -163,18 +163,17 @@
                         <h6 class="text-lg font-semibold text-gray-700 mt-4">Imágenes de la Subasta</h6>
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700">Imágenes Actuales</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div id="imagenes-actuales-<?= $subasta['id_subasta'] ?>" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 <?php
                                 $stmt_imgs = $conn->prepare("SELECT * FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
                                 $stmt_imgs->bindParam(':id_subasta', $subasta['id_subasta']);
                                 $stmt_imgs->execute();
                                 $imagenes = $stmt_imgs->fetchAll(PDO::FETCH_ASSOC);
                                 foreach ($imagenes as $imagen):
-                                    // Construir la ruta completa de la imagen
                                     $imagen_path = htmlspecialchars($imagen['url_imagen']);
                                 ?>
                                     <div class="relative">
-                                        <img src="<?= htmlspecialchars($imagen_path) ?>" alt="Imagen de Subasta" class="w-full h-auto rounded">
+                                        <img src="<?= $imagen_path ?>" alt="Imagen de Subasta" class="w-full h-auto rounded">
                                         <input type="radio" name="imagen_portada" value="<?= $imagen['id_imagen'] ?>" class="absolute top-0 right-0 m-2">
                                         <button type="button" class="absolute bottom-0 left-0 m-2 bg-red-500 text-white px-2 py-1 rounded eliminar-imagen" data-id="<?= $imagen['id_imagen'] ?>">Eliminar</button>
                                     </div>
@@ -379,35 +378,39 @@
     require_once 'config_api_tiny.php';
     ?>
     <script>
-        const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
+        // Verificar si la variable tinyMCEUrl ya está definida
+        if (typeof tinyMCEUrl === 'undefined') {
+            const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
 
-        // Añadir dinámicamente el script de TinyMCE con la clave cargada
-        const scriptElement = document.createElement('script');
-        scriptElement.src = tinyMCEUrl;
-        scriptElement.referrerPolicy = 'origin';
-        document.head.appendChild(scriptElement);
+            // Añadir dinámicamente el script de TinyMCE con la clave cargada
+            const scriptElement = document.createElement('script');
+            scriptElement.src = tinyMCEUrl;
+            scriptElement.referrerPolicy = 'origin';
+            document.head.appendChild(scriptElement);
 
-        scriptElement.onload = () => {
-            // Inicializar TinyMCE una vez que el script haya sido cargado
-            tinymce.init({
-                selector: 'textarea.tinymce-editor',
-                plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
-                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                tinycomments_mode: 'embedded',
-                tinycomments_author: 'Author name',
-                mergetags_list: [{
-                        value: 'First.Name',
-                        title: 'First Name'
-                    },
-                    {
-                        value: 'Email',
-                        title: 'Email'
-                    }
-                ],
-                ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-            });
-        };
+            scriptElement.onload = () => {
+                // Inicializar TinyMCE una vez que el script haya sido cargado
+                tinymce.init({
+                    selector: 'textarea.tinymce-editor',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                    tinycomments_mode: 'embedded',
+                    tinycomments_author: 'Author name',
+                    mergetags_list: [{
+                            value: 'First.Name',
+                            title: 'First Name'
+                        },
+                        {
+                            value: 'Email',
+                            title: 'Email'
+                        }
+                    ],
+                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                });
+            };
+        }
     </script>
+
     <script>
         document.querySelectorAll('.eliminar-imagen').forEach(button => {
             button.addEventListener('click', function() {
@@ -421,5 +424,51 @@
             });
         });
     </script>
+    <script>
+        document.getElementById('nuevas_imagenes').addEventListener('change', function() {
+            const formData = new FormData();
+            const files = this.files;
+
+            for (let i = 0; i < files.length; i++) {
+                formData.append('nuevas_imagenes[]', files[i]);
+            }
+
+            fetch('assets/php/modal/editar_subasta.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const imagenesActuales = document.getElementById('imagenes-actuales-<?= $subasta['id_subasta'] ?>');
+                        data.imagenes.forEach(imagen => {
+                            const imgElement = document.createElement('div');
+                            imgElement.classList.add('relative');
+                            imgElement.innerHTML = `
+                    <img src="${imagen.url}" alt="Imagen de Subasta" class="w-full h-auto rounded">
+                    <input type="radio" name="imagen_portada" value="${imagen.id}" class="absolute top-0 right-0 m-2">
+                    <button type="button" class="absolute bottom-0 left-0 m-2 bg-red-500 text-white px-2 py-1 rounded eliminar-imagen" data-id="${imagen.id}">Eliminar</button>
+                `;
+                            imagenesActuales.appendChild(imgElement);
+
+                            // Asignar eventos a los nuevos elementos
+                            imgElement.querySelector('.eliminar-imagen').addEventListener('click', function() {
+                                const idImagen = this.getAttribute('data-id');
+                                let imagenesAEliminar = document.getElementById('imagenes_a_eliminar').value.split(',');
+                                imagenesAEliminar.push(idImagen);
+                                document.getElementById('imagenes_a_eliminar').value = imagenesAEliminar.join(',');
+
+                                this.closest('.relative').remove();
+                            });
+                        });
+                    } else {
+                        console.error('Error al subir las imágenes:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error en la petición:', error));
+        });
+    </script>
+
+
 
 <?php endif; ?>

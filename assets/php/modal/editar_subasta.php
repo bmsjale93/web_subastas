@@ -192,21 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Gestionar las imágenes
-    if (!empty($_POST['imagen_portada'])) {
-        // Usar la tabla PortadaSubasta para establecer la portada
-        $stmt = $conn->prepare("DELETE FROM PortadaSubasta WHERE id_subasta = :id_subasta");
-        $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $stmt = $conn->prepare("INSERT INTO PortadaSubasta (id_subasta, id_imagen) VALUES (:id_subasta, :id_imagen)");
-        $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
-        $stmt->bindParam(':id_imagen', $_POST['imagen_portada'], PDO::PARAM_INT);
-        $stmt->execute();
-    }
+    $nuevasImagenesIds = [];
 
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        // Rutas relativas a partir del directorio actual del script
         $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
 
         if (!is_dir($uploadDir)) {
@@ -228,20 +216,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $counter++;
             }
 
-            // Verificar si la subida fue exitosa
             if (move_uploaded_file($tmpName, $targetFilePath)) {
-                // Guardar la ruta relativa en la base de datos
                 $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
                 $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
                 $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
                 $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                 $stmt->execute();
-            } else {
-                // Manejo de errores en la subida
-                error_log("Error al subir la imagen: " . $_FILES['nuevas_imagenes']['name'][$key]);
+
+                // Guardar el ID de la imagen insertada
+                $nuevasImagenesIds[] = $conn->lastInsertId();
             }
         }
     }
+
+    if (!empty($nuevasImagenesIds)) {
+        $stmt = $conn->prepare("SELECT id_imagen, url_imagen FROM ImagenesSubasta WHERE id_imagen IN (" . implode(',', $nuevasImagenesIds) . ")");
+        $stmt->execute();
+        $nuevasImagenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'imagenes' => $nuevasImagenes]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'No se subieron imágenes nuevas.']);
+    }
+
+    // Aquí se generan todas las imágenes (existentes y nuevas) para el formulario
+    $imagenes = array_merge($imagenes, $nuevasImagenesIds);
 
     // Eliminar imágenes seleccionadas
     if (!empty($_POST['imagenes_a_eliminar'])) {
@@ -262,6 +261,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':id_imagen', $idImagen, PDO::PARAM_INT);
             $stmt->execute();
         }
+    }
+
+    if (!empty($_POST['imagen_portada'])) {
+        $id_imagen_portada = $_POST['imagen_portada'];
+
+        // Eliminar la portada existente para esta subasta
+        $stmt = $conn->prepare("DELETE FROM PortadaSubasta WHERE id_subasta = :id_subasta");
+        $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+
+        // Insertar la nueva portada seleccionada
+        $stmt = $conn->prepare("INSERT INTO PortadaSubasta (id_subasta, id_imagen) VALUES (:id_subasta, :id_imagen)");
+        $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->bindParam(':id_imagen', $id_imagen_portada, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     // Gestionar los documentos

@@ -205,6 +205,9 @@ $subasta_fechas = array_column($subastas, 'fecha_conclusion');
                         </div>
                         <div class="col-6 d-flex align-items-center">
                             <img src="assets/img/VIVIENDAS/<?= htmlspecialchars(basename($subasta['imagen_portada'])) ?>" alt="Imagen de Subasta" class="w-100 rounded">
+                            <?php
+                            echo 'URL de la imagen: ' . 'assets/img/VIVIENDAS/' . htmlspecialchars(basename($subasta['imagen_portada']));
+                            ?>
                         </div>
                     </div>
                     <!-- Aquí se incluye el modal para cada subasta -->
