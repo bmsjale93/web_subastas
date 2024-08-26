@@ -37,14 +37,15 @@
                                 <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="provincia" name="provincia" required>
                             </div>
                         </div>
+                        <!-- agregar campos de hora en crear_subasta_modal.php -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                                <input type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="fecha_inicio" name="fecha_inicio" required>
+                                <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Fecha y Hora de Inicio</label>
+                                <input type="datetime-local" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="fecha_inicio" name="fecha_inicio" required>
                             </div>
                             <div>
-                                <label for="fecha_conclusion" class="block text-sm font-medium text-gray-700">Fecha de Conclusión</label>
-                                <input type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="fecha_conclusion" name="fecha_conclusion" required>
+                                <label for="fecha_conclusion" class="block text-sm font-medium text-gray-700">Fecha y Hora de Conclusión</label>
+                                <input type="datetime-local" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="fecha_conclusion" name="fecha_conclusion" required>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -321,35 +322,40 @@
     </div>
 </div>
 
-    <?php
-    // Incluir el archivo que contiene la clave de la API de TinyMCE
-    require_once 'config_api_tiny.php';
-    ?>
-    <script>
-        const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
+<?php
+// Incluir el archivo que contiene la clave de la API de TinyMCE
+require_once 'config_api_tiny.php';
+?>
+<script>
+    const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
 
-        // Añadir dinámicamente el script de TinyMCE con la clave cargada
-        const scriptElement = document.createElement('script');
-        scriptElement.src = tinyMCEUrl;
-        scriptElement.referrerPolicy = 'origin';
-        document.head.appendChild(scriptElement);
+    // Añadir dinámicamente el script de TinyMCE con la clave cargada
+    const scriptElement = document.createElement('script');
+    scriptElement.src = tinyMCEUrl;
+    scriptElement.referrerPolicy = 'origin';
+    document.head.appendChild(scriptElement);
 
-        scriptElement.onload = () => {
-            // Inicializar TinyMCE una vez que el script haya sido cargado
-            tinymce.init({
-                selector: 'textarea.tinymce-editor',
-                plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
-                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                tinycomments_mode: 'embedded',
-                tinycomments_author: 'Author name',
-                mergetags_list: [
-                    { value: 'First.Name', title: 'First Name' },
-                    { value: 'Email', title: 'Email' }
-                ],
-                ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-            });
-        };
-    </script>
+    scriptElement.onload = () => {
+        // Inicializar TinyMCE una vez que el script haya sido cargado
+        tinymce.init({
+            selector: 'textarea.tinymce-editor',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker tinymcespellchecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+            tinycomments_mode: 'embedded',
+            tinycomments_author: 'Author name',
+            mergetags_list: [{
+                    value: 'First.Name',
+                    title: 'First Name'
+                },
+                {
+                    value: 'Email',
+                    title: 'Email'
+                }
+            ],
+            ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+        });
+    };
+</script>
 
 <script>
     function formatearNumero(valor) {

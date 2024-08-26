@@ -26,9 +26,11 @@ export function renderCountdown(endDate) {
     const timeLeft = calculateTimeLeft();
 
     if (timeLeft) {
-      countdownElement.textContent = `${formatTime(timeLeft.dias)}:${formatTime(
-        timeLeft.horas
-      )}:${formatTime(timeLeft.minutos)}:${formatTime(timeLeft.segundos)}`;
+      countdownElement.textContent = `${formatTime(
+        timeLeft.dias
+      )}d ${formatTime(timeLeft.horas)}h ${formatTime(
+        timeLeft.minutos
+      )}m ${formatTime(timeLeft.segundos)}s`;
     } else {
       countdownElement.textContent = "Subasta finalizada";
       clearInterval(intervalId);

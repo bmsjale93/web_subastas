@@ -44,12 +44,12 @@
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label for="fecha_inicio<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                                <input type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="fecha_inicio<?= $subasta['id_subasta'] ?>" name="fecha_inicio" value="<?= date('Y-m-d', strtotime($subasta['fecha_inicio'])) ?>">
+                                <label for="fecha_inicio<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Fecha y Hora de Inicio</label>
+                                <input type="datetime-local" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="fecha_inicio<?= $subasta['id_subasta'] ?>" name="fecha_inicio" value="<?= date('Y-m-d\TH:i', strtotime($subasta['fecha_inicio'])) ?>">
                             </div>
                             <div>
-                                <label for="fecha_conclusion<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Fecha de Conclusión</label>
-                                <input type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="fecha_conclusion<?= $subasta['id_subasta'] ?>" name="fecha_conclusion" value="<?= date('Y-m-d', strtotime($subasta['fecha_conclusion'])) ?>">
+                                <label for="fecha_conclusion<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Fecha y Hora de Conclusión</label>
+                                <input type="datetime-local" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="fecha_conclusion<?= $subasta['id_subasta'] ?>" name="fecha_conclusion" value="<?= date('Y-m-d\TH:i', strtotime($subasta['fecha_conclusion'])) ?>">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
@@ -408,6 +408,19 @@
                 ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
             });
         };
+    </script>
+    <script>
+        document.querySelectorAll('.eliminar-imagen').forEach(button => {
+            button.addEventListener('click', function() {
+                const idImagen = this.getAttribute('data-id');
+                let imagenesAEliminar = document.getElementById('imagenes_a_eliminar').value.split(',');
+                imagenesAEliminar.push(idImagen);
+                document.getElementById('imagenes_a_eliminar').value = imagenesAEliminar.join(',');
+
+                // Elimina la imagen visualmente (opcional)
+                this.closest('.relative').remove();
+            });
+        });
     </script>
 
 <?php endif; ?>

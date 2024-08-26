@@ -331,11 +331,11 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Fecha Inicio:</h5>
-                                <p class="text-base"><?= date('d/m/Y', strtotime($subasta['fecha_inicio'])) ?></p>
+                                <p class="text-base"><?= date('d/m/Y H:i', strtotime($subasta['fecha_inicio'])) ?></p>
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Fecha Conclusión:</hhe>
-                                    <p class="text-base font-medium"><?= date('d/m/Y', strtotime($subasta['fecha_conclusion'])) ?></p>
+                                    <p class="text-base font-medium"><?= date('d/m/Y H:i', strtotime($subasta['fecha_conclusion'])) ?></p>
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Tipo de Subasta:</h5>

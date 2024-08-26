@@ -189,7 +189,7 @@ $subasta_fechas = array_column($subastas, 'fecha_conclusion');
                                     <p>Valor Subasta: <span class="value" data-value="<?= number_format($subasta['valor_subasta'], 2) ?>"><?= number_format($subasta['valor_subasta'], 2) ?></span> €</p>
                                     <p>Precio m²: <?= number_format($subasta['precio_medio'], 2) ?> €</p>
                                     <p>Venta Estimada: <?= number_format($subasta['precio_venta_medio'], 2) ?> €</p>
-                                    <p>Fin de Subasta: <?= date('d/m/Y', strtotime($subasta['fecha_conclusion'])) ?></p>
+                                    <p>Fin de Subasta: <?= date('d/m/Y H:i', strtotime($subasta['fecha_conclusion'])) ?></p>
                                 </div>
                                 <div class="subasta-card-status <?= getProcessColor($subasta['estado_subasta']) ?>">
                                     <?= htmlspecialchars($subasta['estado_subasta']) ?>
