@@ -1,4 +1,3 @@
-// Funciones para los componentes
 export function renderCountdown(endDate) {
   const countdownElement = document.createElement("span");
 
@@ -22,6 +21,9 @@ export function renderCountdown(endDate) {
 
   const formatTime = (value) => String(value).padStart(2, "0");
 
+  // Declaración de intervalId antes de la función updateCountdown
+  let intervalId;
+
   const updateCountdown = () => {
     const timeLeft = calculateTimeLeft();
 
@@ -38,7 +40,7 @@ export function renderCountdown(endDate) {
   };
 
   updateCountdown();
-  const intervalId = setInterval(updateCountdown, 1000);
+  intervalId = setInterval(updateCountdown, 1000); // Inicialización de intervalId
 
   return countdownElement;
 }

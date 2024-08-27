@@ -40,6 +40,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // Gestión de la eliminación de videos
+  document.querySelectorAll(".eliminar-video").forEach((button) => {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      const idVideo = this.getAttribute("data-id");
+      agregarAEliminar("videos_a_eliminar", idVideo);
+      // Eliminar visualmente el video del DOM
+      this.closest(".relative").remove();
+    });
+  });
+
   // Gestión de la eliminación de documentos
   document.querySelectorAll(".eliminar-documento").forEach((button) => {
     button.addEventListener("click", function (event) {
@@ -61,34 +72,72 @@ document.addEventListener("DOMContentLoaded", function () {
   // Manejo de área de drop para subir imágenes
   document.querySelectorAll('[id^="drop-area"]').forEach((dropArea) => {
     const id = dropArea.id.replace("drop-area", "");
-    const fileInput = document.getElementById("nuevas_imagenes" + id);
-    const previewContainer = document.getElementById("preview" + id);
+    const fileInputImages = document.getElementById("nuevas_imagenes" + id); // Para imágenes
+    const previewContainerImages = document.getElementById("preview" + id);
 
-    dropArea.addEventListener("click", () => fileInput.click());
+    if (fileInputImages) {
+      dropArea.addEventListener("click", () => {
+        fileInputImages.click();
+      });
 
-    dropArea.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      dropArea.classList.add("bg-gray-100");
-    });
+      dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("bg-gray-100");
+      });
 
-    dropArea.addEventListener("dragleave", () => {
-      dropArea.classList.remove("bg-gray-100");
-    });
+      dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("bg-gray-100");
+      });
 
-    dropArea.addEventListener("drop", (event) => {
-      event.preventDefault();
-      dropArea.classList.remove("bg-gray-100");
-      const files = event.dataTransfer.files;
-      handleFiles(files, previewContainer, fileInput); // Pasa el fileInput
-    });
+      dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("bg-gray-100");
+        const files = event.dataTransfer.files;
+        handleFiles(files, previewContainerImages, "image");
+      });
 
-    fileInput.addEventListener(
-      "change",
-      () => handleFiles(fileInput.files, previewContainer, fileInput) // Pasa el fileInput
-    );
+      fileInputImages.addEventListener("change", () =>
+        handleFiles(fileInputImages.files, previewContainerImages, "image")
+      );
+    }
   });
 
-  function handleFiles(files, previewContainer, fileInput) {
+  // Manejo de área de drop para subir videos
+  document.querySelectorAll('[id^="drop-area-videos"]').forEach((dropArea) => {
+    const id = dropArea.id.replace("drop-area-videos", "");
+    const fileInputVideos = document.getElementById("nuevos_videos" + id); // Para videos
+    const previewContainerVideos = document.getElementById(
+      "preview-videos" + id
+    );
+
+    if (fileInputVideos) {
+      dropArea.addEventListener("click", () => {
+        fileInputVideos.click();
+      });
+
+      dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("bg-gray-100");
+      });
+
+      dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("bg-gray-100");
+      });
+
+      dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("bg-gray-100");
+        const files = event.dataTransfer.files;
+        handleFiles(files, previewContainerVideos, "video");
+      });
+
+      fileInputVideos.addEventListener("change", () =>
+        handleFiles(fileInputVideos.files, previewContainerVideos, "video")
+      );
+    }
+  });
+
+  function handleFiles(files, previewContainer, fileType) {
     previewContainer.innerHTML = ""; // Limpiar previas
 
     // Crear un nuevo DataTransfer para gestionar los archivos seleccionados
@@ -96,27 +145,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (files.length > 0) {
       for (const file of files) {
-        // Agregar cada archivo al DataTransfer
-        dataTransfer.items.add(file);
+        if (
+          (fileType === "image" && file.type.startsWith("image/")) ||
+          (fileType === "video" && file.type.startsWith("video/"))
+        ) {
+          dataTransfer.items.add(file);
 
-        // Manejo de previsualización
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          const img = document.createElement("img");
-          img.src = reader.result;
-          img.className = "w-full h-auto rounded";
-          previewContainer.appendChild(img);
-        };
+          // Manejo de previsualización
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onloadend = () => {
+            if (fileType === "image") {
+              const img = document.createElement("img");
+              img.src = reader.result;
+              img.className = "w-full h-auto rounded";
+              previewContainer.appendChild(img);
+            } else if (fileType === "video") {
+              const video = document.createElement("video");
+              video.src = reader.result;
+              video.controls = true;
+              video.className = "w-full h-auto rounded";
+              previewContainer.appendChild(video);
+            }
+          };
+        }
       }
-      // Asignar los archivos al input
-      fileInput.files = dataTransfer.files;
+
+      if (fileType === "image") {
+        document.getElementById(
+          "nuevas_imagenes" + previewContainer.id.replace("preview", "")
+        ).files = dataTransfer.files;
+      } else if (fileType === "video") {
+        document.getElementById(
+          "nuevos_videos" + previewContainer.id.replace("preview-videos", "")
+        ).files = dataTransfer.files;
+      }
     }
   }
-
-  document.querySelectorAll("form").forEach((form) => {
-    form.addEventListener("submit", function (event) {
-      // Puedes agregar cualquier otra validación aquí si es necesario.
-    });
-  });
 });

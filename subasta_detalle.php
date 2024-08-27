@@ -40,18 +40,30 @@ try {
     exit();
 }
 
-
-function getSubastaImages($conn, $id_subasta)
+function getSubastaMedia($conn, $id_subasta)
 {
-    $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
-    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
-    $stmt->execute();
-    $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $stmt_images = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
+    $stmt_images->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+    $stmt_images->execute();
+    $images = $stmt_images->fetchAll(PDO::FETCH_COLUMN);
 
-    return $images;
+    $stmt_videos = $conn->prepare("SELECT url_video FROM VideosSubasta WHERE id_subasta = :id_subasta");
+    $stmt_videos->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+    $stmt_videos->execute();
+    $videos = $stmt_videos->fetchAll(PDO::FETCH_COLUMN);
+
+    $media = [];
+    foreach ($images as $image) {
+        $media[] = ['src' => htmlspecialchars($image), 'type' => 'image'];
+    }
+    foreach ($videos as $video) {
+        $media[] = ['src' => htmlspecialchars($video), 'type' => 'video'];
+    }
+
+    return $media;
 }
 
-$images = getSubastaImages($conn, $id_subasta);
+$mediaItems = getSubastaMedia($conn, $id_subasta);
 
 function getSubastaDocuments($conn, $id_subasta)
 {
@@ -322,8 +334,8 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
                                 <p class="text-base"><?= htmlspecialchars($subasta['localidad']) ?></p>
                             </div>
                             <div class="mb-3">
-                                <h5 class="font-bold text-base">Provincia:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['provincia']) ?></p>
+                                <h5 class="font-bold text-base">Provincia:</hhe>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['provincia']) ?></p>
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Código Postal:</h5>
@@ -338,16 +350,16 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
                                     <p class="text-base font-medium"><?= date('d/m/Y H:i', strtotime($subasta['fecha_conclusion'])) ?></p>
                             </div>
                             <div class="mb-3">
-                                <h5 class="font-bold text-base">Tipo de Subasta:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['tipo_subasta']) ?></p>
+                                <h5 class="font-bold text-base">Tipo de Subasta:</hhe>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['tipo_subasta']) ?></p>
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Enlace Subasta:</h5>
                                 <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
                             </div>
                             <div class="mb-3">
-                                <h5 class="font-bold text-base">Valor de Subasta:</h5>
-                                <p class="text-base"><?= number_format($subasta['valor_subasta'], 2, ',', '.') ?> €</p>
+                                <h5 class="font-bold text-base">Valor de Subasta:</hhe>
+                                    <p class="text-base font-medium"><?= number_format($subasta['valor_subasta'], 2, ',', '.') ?> €</p>
                             </div>
                             <div class="mb-3">
                                 <h5 class="font-bold text-base">Tasación:</hhe>
@@ -579,13 +591,12 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
             const endDate = new Date('<?= $subasta['fecha_conclusion'] ?>');
             const countdownElement = renderCountdown(endDate);
 
-            // Asegúrate de que el countdownElement es un nuevo elemento o no está en el DOM
-            countdownContainer.innerHTML = ''; // Limpia el contenedor antes de añadir el nuevo elemento
+            countdownContainer.innerHTML = '';
             countdownContainer.appendChild(countdownElement);
 
             // Renderizado del radar chart
             const radarChartContainer = document.getElementById('radar-chart-container');
-            radarChartContainer.innerHTML = ''; // Limpia el contenedor antes de añadir el nuevo elemento
+            radarChartContainer.innerHTML = '';
 
             const radarChartElement = renderRadarChart({
                 "Fachada y Exteriores": <?= $fachada_y_exteriores ?>,
@@ -609,17 +620,17 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
             mapContainer.innerHTML = ''; // Limpia el contenedor antes de renderizar el mapa
             renderGoogleMap(mapContainer, <?= $latitud ?>, <?= $altitud ?>);
 
-            // Renderizado de la galería de imágenes
+            // Renderizado de la galería de imágenes y videos
             const galleryContainer = document.getElementById('gallery-container');
-            const images = <?= json_encode($images, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-            galleryContainer.innerHTML = ''; // Limpia el contenedor antes de añadir las imágenes
+            const mediaItems = <?= json_encode($mediaItems, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+            galleryContainer.innerHTML = ''; // Limpia el contenedor antes de añadir las imágenes y videos
 
-            if (images.length > 0) {
-                const newGallery = renderImageGallery(images);
+            if (mediaItems.length > 0) {
+                const newGallery = renderImageGallery(mediaItems);
                 galleryContainer.innerHTML = ''; // Asegura que el contenedor está vacío
                 galleryContainer.appendChild(newGallery);
             } else {
-                galleryContainer.innerHTML = '<p>No hay imágenes disponibles.</p>';
+                galleryContainer.innerHTML = '<p>No hay medios disponibles.</p>';
             }
         });
     </script>

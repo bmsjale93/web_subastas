@@ -40,3 +40,16 @@ VALUES
 (@id_subasta, 'assets/img/PUNTA UMBRIA/imagen-punta-umbria-3.png', 'Imagen de la subasta Punta Umbría 3'),
 (@id_subasta, 'assets/img/PUNTA UMBRIA/imagen-punta-umbria-4.png', 'Imagen de la subasta Punta Umbría 4');
 
+
+CREATE TABLE VideosSubasta (
+    id_video INT AUTO_INCREMENT PRIMARY KEY,
+    id_subasta INT,
+    url_video VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    FOREIGN KEY (id_subasta) REFERENCES Subastas(id_subasta)
+);
+
+INSERT INTO
+    EstadosSubasta (id_estado, estado)
+VALUES
+    (4, '¡Ganada!');

@@ -23,50 +23,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Actualizar la tabla Subastas
     $fieldsToUpdate = [];
 
-    if (!empty($_POST['direccion'])) {
-        $fieldsToUpdate['direccion'] = $_POST['direccion'];
-    }
-    if (!empty($_POST['cp'])) {
-        $fieldsToUpdate['cp'] = $_POST['cp'];
-    }
-    if (!empty($_POST['localidad'])) {
-        $fieldsToUpdate['localidad'] = $_POST['localidad'];
-    }
-    if (!empty($_POST['provincia'])) {
-        $fieldsToUpdate['provincia'] = $_POST['provincia'];
-    }
-    if (!empty($_POST['fecha_inicio'])) {
-        $fieldsToUpdate['fecha_inicio'] = $_POST['fecha_inicio'];
-    }
-    if (!empty($_POST['fecha_conclusion'])) {
-        $fieldsToUpdate['fecha_conclusion'] = $_POST['fecha_conclusion'];
-    }
-    if (!empty($_POST['enlace_subasta'])) {
-        $fieldsToUpdate['enlace_subasta'] = $_POST['enlace_subasta'];
-    }
-    if (!empty($_POST['valor_subasta'])) {
-        $fieldsToUpdate['valor_subasta'] = convertirDecimal($_POST['valor_subasta']);
-    }
-    if (!empty($_POST['tasacion'])) {
-        $fieldsToUpdate['tasacion'] = convertirDecimal($_POST['tasacion']);
-    }
-    if (!empty($_POST['importe_deposito'])) {
-        $fieldsToUpdate['importe_deposito'] = convertirDecimal($_POST['importe_deposito']);
-    }
-    if (!empty($_POST['puja_minima'])) {
-        $fieldsToUpdate['puja_minima'] = convertirDecimal($_POST['puja_minima']);
-    }
-    if (!empty($_POST['tramos_pujas'])) {
-        $fieldsToUpdate['tramos_pujas'] = convertirDecimal($_POST['tramos_pujas']);
-    }
-    if (!empty($_POST['cantidad_reclamada'])) {
-        $fieldsToUpdate['cantidad_reclamada'] = convertirDecimal($_POST['cantidad_reclamada']);
-    }
-    if (!empty($_POST['id_tipo_subasta'])) {
-        $fieldsToUpdate['id_tipo_subasta'] = $_POST['id_tipo_subasta'];
-    }
-    if (!empty($_POST['id_estado'])) {
-        $fieldsToUpdate['id_estado'] = $_POST['id_estado'];
+    // Construir un array con los campos y sus valores correspondientes
+    $campos = [
+        'direccion',
+        'cp',
+        'localidad',
+        'provincia',
+        'fecha_inicio',
+        'fecha_conclusion',
+        'enlace_subasta',
+        'valor_subasta',
+        'tasacion',
+        'importe_deposito',
+        'puja_minima',
+        'tramos_pujas',
+        'cantidad_reclamada',
+        'id_tipo_subasta',
+        'id_estado'
+    ];
+
+    foreach ($campos as $campo) {
+        if (!empty($_POST[$campo])) {
+            if (in_array($campo, ['valor_subasta', 'tasacion', 'importe_deposito', 'puja_minima', 'tramos_pujas', 'cantidad_reclamada'])) {
+                $fieldsToUpdate[$campo] = convertirDecimal($_POST[$campo]);
+            } else {
+                $fieldsToUpdate[$campo] = $_POST[$campo];
+            }
+        }
     }
 
     if (!empty($fieldsToUpdate)) {
@@ -87,7 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Actualizar la tabla Localizaciones
     $fieldsToUpdate = [];
-
     if (!empty($_POST['latitud'])) {
         $fieldsToUpdate['latitud'] = $_POST['latitud'];
     }
@@ -113,30 +95,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Actualizar la tabla SubastaDetalles
     $fieldsToUpdate = [];
+    $camposDetalles = [
+        'precio_medio',
+        'precio_venta_medio',
+        'puja_mas_alta',
+        'precio_trastero',
+        'precio_garaje'
+    ];
 
-    if (!empty($_POST['precio_medio'])) {
-        $fieldsToUpdate['precio_medio'] = convertirDecimal($_POST['precio_medio']);
+    foreach ($camposDetalles as $campo) {
+        if (!empty($_POST[$campo])) {
+            $fieldsToUpdate[$campo] = convertirDecimal($_POST[$campo]);
+        }
     }
-    if (!empty($_POST['precio_venta_medio'])) {
-        $fieldsToUpdate['precio_venta_medio'] = convertirDecimal($_POST['precio_venta_medio']);
-    }
-    if (!empty($_POST['puja_mas_alta'])) {
-        $fieldsToUpdate['puja_mas_alta'] = convertirDecimal($_POST['puja_mas_alta']);
-    }
-    if (!empty($_POST['precio_trastero'])) {
-        $fieldsToUpdate['precio_trastero'] = convertirDecimal($_POST['precio_trastero']);
-    }
-    if (!empty($_POST['precio_garaje'])) {
-        $fieldsToUpdate['precio_garaje'] = convertirDecimal($_POST['precio_garaje']);
-    }
+
     if (!empty($_FILES['pdf_precios']['name'])) {
-        $uploadDir = '../../pdf_compra/';
+        $uploadDir = __DIR__ . '/../../../assets/pdf_compra/';
         $fileName = basename($_FILES['pdf_precios']['name']);
         $targetFilePath = $uploadDir . $fileName;
 
         if (move_uploaded_file($_FILES['pdf_precios']['tmp_name'], $targetFilePath)) {
             $relativeFilePath = 'assets/pdf_compra/' . $fileName;
             $fieldsToUpdate['url_pdf_precios'] = $relativeFilePath;
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Error al subir el PDF de precios.']);
+            exit();
         }
     }
 
@@ -159,37 +142,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Actualizar comentarios
     if (isset($_POST['comentarios'])) {
         $comentario = trim($_POST['comentarios']);
-
         if ($comentario === '') {
-            // Si el comentario está vacío, eliminar cualquier comentario existente
             $stmt = $conn->prepare("DELETE FROM Comentarios WHERE id_subasta = :id_subasta");
             $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
             $stmt->execute();
         } else {
-            // Comprobar si ya existe un comentario para esta subasta
             $stmt = $conn->prepare("SELECT id_comentario FROM Comentarios WHERE id_subasta = :id_subasta");
             $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
             $stmt->execute();
             $id_comentario_existente = $stmt->fetchColumn();
 
             if ($id_comentario_existente) {
-                // Si ya existe, actualizarlo
                 $stmt = $conn->prepare("UPDATE Comentarios SET comentario = :comentario WHERE id_comentario = :id_comentario");
                 $stmt->bindValue(':comentario', $comentario, PDO::PARAM_STR);
                 $stmt->bindValue(':id_comentario', $id_comentario_existente, PDO::PARAM_INT);
             } else {
-                // Si no existe, insertarlo
                 $stmt = $conn->prepare("INSERT INTO Comentarios (id_subasta, comentario) VALUES (:id_subasta, :comentario)");
                 $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
                 $stmt->bindValue(':comentario', $comentario, PDO::PARAM_STR);
             }
-
             $stmt->execute();
         }
     }
 
-    $nuevasImagenesIds = [];
+    $nuevasMediaIds = []; // IDs de las nuevas imágenes y videos subidos
 
+    // Subir nuevas imágenes
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
         $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
 
@@ -201,43 +179,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = basename($_FILES['nuevas_imagenes']['name'][$key]);
             $targetFilePath = $uploadDir . $fileName;
 
-            $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
-            $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
-            $counter = 1;
+            $fileType = mime_content_type($tmpName);
+            if (strpos($fileType, 'image') === 0) {
+                $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
+                $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
+                $counter = 1;
 
-            while (file_exists($targetFilePath)) {
-                $newFileName = $baseName . '_' . $counter . '.' . $fileExtension;
-                $targetFilePath = $uploadDir . $newFileName;
-                $counter++;
-            }
+                while (file_exists($targetFilePath)) {
+                    $newFileName = $baseName . '_' . $counter . '.' . $fileExtension;
+                    $targetFilePath = $uploadDir . $newFileName;
+                    $counter++;
+                }
 
-            if (move_uploaded_file($tmpName, $targetFilePath)) {
-                $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
-                $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
-                $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
-                $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
-                $stmt->execute();
-
-                $nuevasImagenesIds[] = $conn->lastInsertId();
+                if (move_uploaded_file($tmpName, $targetFilePath)) {
+                    $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
+                    $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
+                    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+                    $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
+                    $stmt->execute();
+                }
             }
         }
     }
 
-    $imagenes = []; // Asegúrate de inicializar esta variable
+    // Subir nuevos videos
+    if (isset($_FILES['nuevos_videos']) && !empty($_FILES['nuevos_videos']['name'][0])) {
+        $uploadDir = __DIR__ . '/../../../assets/videos/VIVIENDAS/';
 
-    // Obtener las imágenes existentes
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        foreach ($_FILES['nuevos_videos']['tmp_name'] as $key => $tmpName) {
+            $fileName = basename($_FILES['nuevos_videos']['name'][$key]);
+            $targetFilePath = $uploadDir . $fileName;
+
+            $fileType = mime_content_type($tmpName);
+            if (strpos($fileType, 'video') === 0) {
+                $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
+                $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
+                $counter = 1;
+
+                while (file_exists($targetFilePath)) {
+                    $newFileName = $baseName . '_' . $counter . '.' . $fileExtension;
+                    $targetFilePath = $uploadDir . $newFileName;
+                    $counter++;
+                }
+
+                if (move_uploaded_file($tmpName, $targetFilePath)) {
+                    $relativeFilePath = 'assets/videos/VIVIENDAS/' . basename($targetFilePath);
+                    $stmt = $conn->prepare("INSERT INTO VideosSubasta (id_subasta, url_video) VALUES (:id_subasta, :url_video)");
+                    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+                    $stmt->bindParam(':url_video', $relativeFilePath, PDO::PARAM_STR);
+                    $stmt->execute();
+                }
+            }
+        }
+    }
+
+    $media = []; // Inicializar la variable media
+
+    // Obtener las imágenes y videos existentes
     $stmt = $conn->prepare("SELECT id_imagen, url_imagen FROM ImagenesSubasta WHERE id_subasta = :id_subasta");
     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
     $stmt->execute();
     $imagenesExistentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Combinar imágenes existentes con nuevas
-    $imagenes = array_merge($imagenesExistentes, $nuevasImagenesIds);
+    $stmt = $conn->prepare("SELECT id_video, url_video FROM VideosSubasta WHERE id_subasta = :id_subasta");
+    $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+    $stmt->execute();
+    $videosExistentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!empty($imagenes)) {
-        echo json_encode(['success' => true, 'imagenes' => $imagenes]);
+    // Combinar imágenes y videos existentes con los nuevos
+    $media = array_merge($imagenesExistentes, $videosExistentes, $nuevasMediaIds);
+
+    if (!empty($media)) {
+        echo json_encode(['success' => true, 'media' => $media]);
     } else {
-        echo json_encode(['success' => false, 'error' => 'No se subieron imágenes nuevas.']);
+        echo json_encode(['success' => false, 'error' => 'No se subieron nuevos archivos.']);
     }
 
     // Eliminar imágenes seleccionadas
@@ -259,6 +278,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Eliminar videos seleccionados
+    if (!empty($_POST['videos_a_eliminar'])) {
+        $videosAEliminar = explode(',', $_POST['videos_a_eliminar']);
+        foreach ($videosAEliminar as $idVideo) {
+            $stmt = $conn->prepare("SELECT url_video FROM VideosSubasta WHERE id_video = :id_video");
+            $stmt->bindParam(':id_video', $idVideo, PDO::PARAM_INT);
+            $stmt->execute();
+            $video = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($video && file_exists(__DIR__ . '/../../../' . $video['url_video'])) {
+                unlink(__DIR__ . '/../../../' . $video['url_video']);
+            }
+
+            $stmt = $conn->prepare("DELETE FROM VideosSubasta WHERE id_video = :id_video");
+            $stmt->bindParam(':id_video', $idVideo, PDO::PARAM_INT);
+            $stmt->execute();
+        }
+    }
+
+    // Eliminar imágenes y videos seleccionados combinados
+    if (!empty($_POST['media_a_eliminar'])) {
+        $mediaAEliminar = explode(',', $_POST['media_a_eliminar']);
+        foreach ($mediaAEliminar as $idMedia) {
+            // Eliminar imagen
+            $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
+            $stmt->bindParam(':id_imagen', $idMedia, PDO::PARAM_INT);
+            $stmt->execute();
+            $imagen = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($imagen && file_exists(__DIR__ . '/../../../' . $imagen['url_imagen'])) {
+                unlink(__DIR__ . '/../../../' . $imagen['url_imagen']);
+            }
+
+            $stmt = $conn->prepare("DELETE FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
+            $stmt->bindParam(':id_imagen', $idMedia, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Eliminar video
+            $stmt = $conn->prepare("SELECT url_video FROM VideosSubasta WHERE id_video = :id_video");
+            $stmt->bindParam(':id_video', $idMedia, PDO::PARAM_INT);
+            $stmt->execute();
+            $video = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($video && file_exists(__DIR__ . '/../../../' . $video['url_video'])) {
+                unlink(__DIR__ . '/../../../' . $video['url_video']);
+            }
+
+            $stmt = $conn->prepare("DELETE FROM VideosSubasta WHERE id_video = :id_video");
+            $stmt->bindParam(':id_video', $idMedia, PDO::PARAM_INT);
+            $stmt->execute();
+        }
+    }
+
+    // Establecer imagen de portada
     if (!empty($_POST['imagen_portada'])) {
         $id_imagen_portada = $_POST['imagen_portada'];
 
@@ -274,8 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Gestionar los documentos
     if (isset($_FILES['nuevos_documentos']) && !empty($_FILES['nuevos_documentos']['name'][0])) {
-        $uploadDir = __DIR__ . '/../../../documentos/';
-
+        $uploadDir = __DIR__ . '/../../../assets/documentos/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
@@ -295,12 +367,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (move_uploaded_file($tmpName, $targetFilePath)) {
-                $relativeFilePath = 'assets/documentos/' . $fileName;
+                $relativeFilePath = 'assets/documentos/' . basename($targetFilePath);
                 $stmt = $conn->prepare("INSERT INTO Documentos (id_subasta, nombre_documento, url_documento) VALUES (:id_subasta, :nombre_documento, :url_documento)");
                 $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
                 $stmt->bindParam(':nombre_documento', $fileName);
-                $stmt->bindParam(':url_documento', $relativeFilePath);
+                $stmt->bindParam(':url_documento', $relativeFilePath, PDO::PARAM_STR);
                 $stmt->execute();
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Error al subir el documento.']);
+                exit();
             }
         }
     }
@@ -325,33 +400,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Actualizar la tabla Catastro
     $fieldsToUpdate = [];
+    $camposCatastro = [
+        'ref_catastral',
+        'clase',
+        'uso_principal',
+        'sup_construida',
+        'vivienda',
+        'garaje',
+        'almacen',
+        'ano_construccion',
+        'enlace_catastro'
+    ];
 
-    if (!empty($_POST['ref_catastral'])) {
-        $fieldsToUpdate['ref_catastral'] = $_POST['ref_catastral'];
-    }
-    if (!empty($_POST['clase'])) {
-        $fieldsToUpdate['clase'] = $_POST['clase'];
-    }
-    if (!empty($_POST['uso_principal'])) {
-        $fieldsToUpdate['uso_principal'] = $_POST['uso_principal'];
-    }
-    if (!empty($_POST['sup_construida'])) {
-        $fieldsToUpdate['sup_construida'] = $_POST['sup_construida'];
-    }
-    if (!empty($_POST['vivienda'])) {
-        $fieldsToUpdate['vivienda'] = $_POST['vivienda'];
-    }
-    if (!empty($_POST['garaje'])) {
-        $fieldsToUpdate['garaje'] = $_POST['garaje'];
-    }
-    if (!empty($_POST['almacen'])) {
-        $fieldsToUpdate['almacen'] = $_POST['almacen'];
-    }
-    if (!empty($_POST['ano_construccion'])) {
-        $fieldsToUpdate['ano_construccion'] = $_POST['ano_construccion'];
-    }
-    if (!empty($_POST['enlace_catastro'])) {
-        $fieldsToUpdate['enlace_catastro'] = $_POST['enlace_catastro'];
+    foreach ($camposCatastro as $campo) {
+        if (!empty($_POST[$campo])) {
+            $fieldsToUpdate[$campo] = $_POST[$campo];
+        }
     }
 
     if (!empty($fieldsToUpdate)) {
@@ -372,42 +436,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Actualizar la tabla Valoraciones
     $fieldsToUpdate = [];
+    $camposValoraciones = [
+        'fachada_y_exteriores',
+        'techo_y_canaletas',
+        'ventanas_y_puerta',
+        'jardin_y_terrenos',
+        'estado_estructuras',
+        'instalaciones_visibles',
+        'vecindario',
+        'seguridad',
+        'ruido_y_olores',
+        'acceso_y_estacionamiento',
+        'localizacion',
+        'estado_inquilino'
+    ];
 
-    if (!empty($_POST['fachada_y_exteriores'])) {
-        $fieldsToUpdate['fachada_y_exteriores'] = $_POST['fachada_y_exteriores'];
-    }
-    if (!empty($_POST['techo_y_canaletas'])) {
-        $fieldsToUpdate['techo_y_canaletas'] = $_POST['techo_y_canaletas'];
-    }
-    if (!empty($_POST['ventanas_y_puerta'])) {
-        $fieldsToUpdate['ventanas_y_puerta'] = $_POST['ventanas_y_puerta'];
-    }
-    if (!empty($_POST['jardin_y_terrenos'])) {
-        $fieldsToUpdate['jardin_y_terrenos'] = $_POST['jardin_y_terrenos'];
-    }
-    if (!empty($_POST['estado_estructuras'])) {
-        $fieldsToUpdate['estado_estructuras'] = $_POST['estado_estructuras'];
-    }
-    if (!empty($_POST['instalaciones_visibles'])) {
-        $fieldsToUpdate['instalaciones_visibles'] = $_POST['instalaciones_visibles'];
-    }
-    if (!empty($_POST['vecindario'])) {
-        $fieldsToUpdate['vecindario'] = $_POST['vecindario'];
-    }
-    if (!empty($_POST['seguridad'])) {
-        $fieldsToUpdate['seguridad'] = $_POST['seguridad'];
-    }
-    if (!empty($_POST['ruido_y_olores'])) {
-        $fieldsToUpdate['ruido_y_olores'] = $_POST['ruido_y_olores'];
-    }
-    if (!empty($_POST['acceso_y_estacionamiento'])) {
-        $fieldsToUpdate['acceso_y_estacionamiento'] = $_POST['acceso_y_estacionamiento'];
-    }
-    if (!empty($_POST['localizacion'])) {
-        $fieldsToUpdate['localizacion'] = $_POST['localizacion'];
-    }
-    if (!empty($_POST['estado_inquilino'])) {
-        $fieldsToUpdate['estado_inquilino'] = $_POST['estado_inquilino'];
+    foreach ($camposValoraciones as $campo) {
+        if (!empty($_POST[$campo])) {
+            $fieldsToUpdate[$campo] = $_POST[$campo];
+        }
     }
 
     if (!empty($fieldsToUpdate)) {

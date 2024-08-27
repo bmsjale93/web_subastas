@@ -42,6 +42,8 @@ function getProcessColor($process)
         "Activa" => "bg-green-100 text-green-700 border-2 border-green-700 py-2 mt-3 mb-2",
         "Estudiando" => "bg-yellow-100 text-yellow-500 border-2 border-yellow-500 py-2 mt-3",
         "Terminada" => "bg-red-100 text-red-700 border-2 border-red-500 py-2 mt-3",
+        "¡Ganada!" => "bg-blue-100 text-blue-700 border-2 border-blue-700 py-2 mt-3 mb-2",
+
     ];
     return $colors[$process] ?? "bg-gray-200 text-gray-800";
 }

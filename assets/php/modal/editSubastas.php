@@ -189,8 +189,38 @@
                             <div id="preview<?= $subasta['id_subasta'] ?>" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4"></div>
                         </div>
 
+                        <!-- Sección de Videos -->
+                        <h6 class="text-lg font-semibold text-gray-700 mt-4">Videos de la Subasta</h6>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700">Videos Actuales</label>
+                            <div id="videos-actuales-<?= $subasta['id_subasta'] ?>" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <?php
+                                $stmt_videos = $conn->prepare("SELECT * FROM VideosSubasta WHERE id_subasta = :id_subasta");
+                                $stmt_videos->bindParam(':id_subasta', $subasta['id_subasta']);
+                                $stmt_videos->execute();
+                                $videos = $stmt_videos->fetchAll(PDO::FETCH_ASSOC);
+                                foreach ($videos as $video):
+                                    $video_path = htmlspecialchars($video['url_video']);
+                                ?>
+                                    <div class="relative">
+                                        <video controls src="<?= $video_path ?>" alt="Video de Subasta" class="w-full h-auto rounded"></video>
+                                        <button type="button" class="absolute bottom-0 left-0 m-2 bg-red-500 text-white px-2 py-1 rounded eliminar-video" data-id="<?= $video['id_video'] ?>">Eliminar</button>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700">Subir Nuevos Videos</label>
+                            <div id="drop-area-videos<?= $subasta['id_subasta'] ?>" class="border-dashed border-2 border-gray-300 rounded-md p-4 text-center">
+                                Arrastra y suelta los videos aquí o haz clic para seleccionar
+                                <input type="file" id="nuevos_videos<?= $subasta['id_subasta'] ?>" name="nuevos_videos[]" multiple accept="video/*">
+                            </div>
+                            <div id="preview-videos<?= $subasta['id_subasta'] ?>" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4"></div>
+                        </div>
+
                         <!-- Campo oculto para almacenar los IDs de elementos a eliminar -->
                         <input type="hidden" name="imagenes_a_eliminar" id="imagenes_a_eliminar">
+                        <input type="hidden" name="videos_a_eliminar" id="videos_a_eliminar">
                         <input type="hidden" name="documentos_a_eliminar" id="documentos_a_eliminar">
 
                         <!-- Sección de Documentos -->
@@ -394,6 +424,4 @@
             }
         });
     </script>
-
-
 <?php endif; ?>

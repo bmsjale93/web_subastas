@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id_estado', $_POST['id_estado']);
         $stmt->execute();
 
+
         // Obtener el ID de la subasta recién creada
         $id_subasta = $conn->lastInsertId();
 
@@ -176,6 +177,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Subir videos de la subasta
+        foreach ($_FILES['videos_subasta']['tmp_name'] as $key => $tmp_name) {
+            if ($_FILES['videos_subasta']['error'][$key] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/../../../assets/videos/VIVIENDAS/';
+                $fileName = basename($_FILES['videos_subasta']['name'][$key]);
+                $targetFilePath = $uploadDir . $fileName;
+
+                // Crear directorio si no existe
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                // Mover el archivo subido al directorio de destino
+                move_uploaded_file($tmp_name, $targetFilePath);
+
+                // Guardar la ruta relativa en la base de datos
+                $relativeFilePath = 'assets/videos/VIVIENDAS/' . $fileName;
+
+                $stmt = $conn->prepare("
+            INSERT INTO VideosSubasta (id_subasta, url_video)
+            VALUES (:id_subasta, :url_video)
+        ");
+                $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
+                $stmt->bindParam(':url_video', $relativeFilePath, PDO::PARAM_STR);
+                $stmt->execute();
+            }
+        }
 
         foreach ($_FILES['documentos_subasta']['tmp_name'] as $key => $tmp_name) {
             if ($_FILES['documentos_subasta']['error'][$key] === UPLOAD_ERR_OK) {

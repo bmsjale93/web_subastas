@@ -30,6 +30,22 @@ if (isset($_POST['id_subasta'])) {
         // Eliminar las entradas de la tabla `ImagenesSubasta`
         $conn->prepare("DELETE FROM ImagenesSubasta WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
+        // Eliminar registros relacionados en la tabla `VideosSubasta`
+        $stmt = $conn->prepare("SELECT url_video FROM VideosSubasta WHERE id_subasta = :id_subasta");
+        $stmt->bindParam(':id_subasta', $id_subasta);
+        $stmt->execute();
+        $videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Eliminar videos físicos si existen
+        foreach ($videos as $video) {
+            if (file_exists('../' . $video['url_video'])) {
+                unlink('../' . $video['url_video']);
+            }
+        }
+
+        // Eliminar las entradas de la tabla `VideosSubasta`
+        $conn->prepare("DELETE FROM VideosSubasta WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+
         // Eliminar registros relacionados en la tabla `documentos`
         $stmt = $conn->prepare("SELECT url_documento FROM documentos WHERE id_subasta = :id_subasta");
         $stmt->bindParam(':id_subasta', $id_subasta);
@@ -55,9 +71,13 @@ if (isset($_POST['id_subasta'])) {
         // Eliminar registros relacionados en la tabla `valoraciones`
         $conn->prepare("DELETE FROM valoraciones WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
-        // Eliminar la subasta de todas las tablas relevantes
+        // Eliminar registros relacionados en la tabla `PortadaSubasta`
         $conn->prepare("DELETE FROM PortadaSubasta WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+
+        // Eliminar registros relacionados en la tabla `SubastaDetalles`
         $conn->prepare("DELETE FROM SubastaDetalles WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+
+        // Finalmente, eliminar la entrada de la tabla `Subastas`
         $conn->prepare("DELETE FROM Subastas WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Confirmar la transacción

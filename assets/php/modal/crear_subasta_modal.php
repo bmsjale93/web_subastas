@@ -281,13 +281,20 @@
                         </div>
                     </div>
 
-                    <!-- Paso 6: Subir Imágenes y Documentos -->
+                    <!-- Paso 6: Subir Imágenes, Videos y Documentos -->
                     <div id="step6" class="step hidden">
-                        <h6 class="text-lg font-semibold text-gray-700">Imágenes y Documentos</h6>
+                        <h6 class="text-lg font-semibold text-gray-700">Imágenes, Videos y Documentos</h6>
                         <div class="mb-4">
                             <label for="imagenes_subasta" class="block text-sm font-medium text-gray-700">Imágenes de la Subasta</label>
                             <div class="drop-zone mt-2" id="imagenesDropZone">
                                 <input type="file" id="imagenes_subasta" name="imagenes_subasta[]" multiple accept="image/*" class="hidden">
+                                <p class="text-center text-gray-500">Arrastra los archivos aquí o haz clic para seleccionar</p>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="videos_subasta" class="block text-sm font-medium text-gray-700">Videos de la Subasta</label>
+                            <div class="drop-zone mt-2" id="videosDropZone">
+                                <input type="file" id="videos_subasta" name="videos_subasta[]" multiple accept="video/*" class="hidden">
                                 <p class="text-center text-gray-500">Arrastra los archivos aquí o haz clic para seleccionar</p>
                             </div>
                         </div>
