@@ -79,18 +79,27 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       dropArea.classList.remove("bg-gray-100");
       const files = event.dataTransfer.files;
-      handleFiles(files, previewContainer);
+      handleFiles(files, previewContainer, fileInput); // Pasa el fileInput
     });
 
-    fileInput.addEventListener("change", () =>
-      handleFiles(fileInput.files, previewContainer)
+    fileInput.addEventListener(
+      "change",
+      () => handleFiles(fileInput.files, previewContainer, fileInput) // Pasa el fileInput
     );
   });
 
-  function handleFiles(files, previewContainer) {
+  function handleFiles(files, previewContainer, fileInput) {
     previewContainer.innerHTML = ""; // Limpiar previas
+
+    // Crear un nuevo DataTransfer para gestionar los archivos seleccionados
+    const dataTransfer = new DataTransfer();
+
     if (files.length > 0) {
       for (const file of files) {
+        // Agregar cada archivo al DataTransfer
+        dataTransfer.items.add(file);
+
+        // Manejo de previsualización
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onloadend = () => {
@@ -100,28 +109,14 @@ document.addEventListener("DOMContentLoaded", function () {
           previewContainer.appendChild(img);
         };
       }
+      // Asignar los archivos al input
+      fileInput.files = dataTransfer.files;
     }
   }
 
-  // Verificación del formulario antes de enviarlo
   document.querySelectorAll("form").forEach((form) => {
     form.addEventListener("submit", function (event) {
-      const fileInputs = form.querySelectorAll('input[type="file"]');
-      let allFilesSelected = true;
-
-      fileInputs.forEach((fileInput) => {
-        if (fileInput.files.length === 0) {
-          allFilesSelected = false;
-          console.warn("No hay archivos seleccionados en", fileInput);
-        } else {
-          console.log("Archivos seleccionados en", fileInput, fileInput.files);
-        }
-      });
-
-      if (!allFilesSelected) {
-        event.preventDefault(); // Evitar el envío si no hay archivos seleccionados
-        alert("Por favor, seleccione al menos un archivo antes de enviar.");
-      }
+      // Puedes agregar cualquier otra validación aquí si es necesario.
     });
   });
 });
