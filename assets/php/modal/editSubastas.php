@@ -181,8 +181,12 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label for="nuevas_imagenes" class="block text-sm font-medium text-gray-700">Subir Nuevas Imágenes</label>
-                            <input type="file" id="nuevas_imagenes" name="nuevas_imagenes[]" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <label class="block text-sm font-medium text-gray-700">Subir Nuevas Imágenes</label>
+                            <div id="drop-area<?= $subasta['id_subasta'] ?>" class="border-dashed border-2 border-gray-300 rounded-md p-4 text-center">
+                                Arrastra y suelta las imágenes aquí o haz clic para seleccionar
+                                <input type="file" id="nuevas_imagenes<?= $subasta['id_subasta'] ?>" name="nuevas_imagenes[]" multiple>
+                            </div>
+                            <div id="preview<?= $subasta['id_subasta'] ?>" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4"></div>
                         </div>
 
                         <!-- Campo oculto para almacenar los IDs de elementos a eliminar -->
@@ -353,122 +357,43 @@
         </div>
     </div>
 
-    <script>
-        function formatearNumero(valor) {
-            valor = valor.replace(/[^\d.,-]/g, '');
-
-            if (valor.indexOf(',') > valor.indexOf('.')) {
-                valor = valor.replace(/\./g, '').replace(/,/g, '.');
-            } else {
-                valor = valor.replace(/,/g, '');
-            }
-
-            let numero = parseFloat(valor);
-
-            if (isNaN(numero)) return '';
-
-            return numero.toLocaleString('es-ES', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }) + ' €';
-        }
-    </script>
     <?php
     // Incluir el archivo que contiene la clave de la API de TinyMCE
     require_once 'config_api_tiny.php';
     ?>
     <script>
-        // Verificar si la variable tinyMCEUrl ya está definida
-        if (typeof tinyMCEUrl === 'undefined') {
-            const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof tinyMCEUrl === 'undefined') {
+                const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
 
-            // Añadir dinámicamente el script de TinyMCE con la clave cargada
-            const scriptElement = document.createElement('script');
-            scriptElement.src = tinyMCEUrl;
-            scriptElement.referrerPolicy = 'origin';
-            document.head.appendChild(scriptElement);
+                // Añadir dinámicamente el script de TinyMCE con la clave cargada
+                const scriptElement = document.createElement('script');
+                scriptElement.src = tinyMCEUrl;
+                scriptElement.referrerPolicy = 'origin';
+                document.head.appendChild(scriptElement);
 
-            scriptElement.onload = () => {
-                // Inicializar TinyMCE una vez que el script haya sido cargado
-                tinymce.init({
-                    selector: 'textarea.tinymce-editor',
-                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
-                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                    tinycomments_mode: 'embedded',
-                    tinycomments_author: 'Author name',
-                    mergetags_list: [{
-                            value: 'First.Name',
-                            title: 'First Name'
-                        },
-                        {
-                            value: 'Email',
-                            title: 'Email'
-                        }
-                    ],
-                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                });
-            };
-        }
-    </script>
-
-    <script>
-        document.querySelectorAll('.eliminar-imagen').forEach(button => {
-            button.addEventListener('click', function() {
-                const idImagen = this.getAttribute('data-id');
-                let imagenesAEliminar = document.getElementById('imagenes_a_eliminar').value.split(',');
-                imagenesAEliminar.push(idImagen);
-                document.getElementById('imagenes_a_eliminar').value = imagenesAEliminar.join(',');
-
-                // Elimina la imagen visualmente (opcional)
-                this.closest('.relative').remove();
-            });
-        });
-    </script>
-    <script>
-        document.getElementById('nuevas_imagenes').addEventListener('change', function() {
-            const formData = new FormData();
-            const files = this.files;
-
-            for (let i = 0; i < files.length; i++) {
-                formData.append('nuevas_imagenes[]', files[i]);
+                scriptElement.onload = () => {
+                    tinymce.init({
+                        selector: 'textarea.tinymce-editor',
+                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ycheck typography inlinecss markdown',
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                        tinycomments_mode: 'embedded',
+                        tinycomments_author: 'Author name',
+                        mergetags_list: [{
+                                value: 'First.Name',
+                                title: 'First Name'
+                            },
+                            {
+                                value: 'Email',
+                                title: 'Email'
+                            }
+                        ],
+                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                    });
+                };
             }
-
-            fetch('assets/php/modal/editar_subasta.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const imagenesActuales = document.getElementById('imagenes-actuales-<?= $subasta['id_subasta'] ?>');
-                        data.imagenes.forEach(imagen => {
-                            const imgElement = document.createElement('div');
-                            imgElement.classList.add('relative');
-                            imgElement.innerHTML = `
-                    <img src="${imagen.url}" alt="Imagen de Subasta" class="w-full h-auto rounded">
-                    <input type="radio" name="imagen_portada" value="${imagen.id}" class="absolute top-0 right-0 m-2">
-                    <button type="button" class="absolute bottom-0 left-0 m-2 bg-red-500 text-white px-2 py-1 rounded eliminar-imagen" data-id="${imagen.id}">Eliminar</button>
-                `;
-                            imagenesActuales.appendChild(imgElement);
-
-                            // Asignar eventos a los nuevos elementos
-                            imgElement.querySelector('.eliminar-imagen').addEventListener('click', function() {
-                                const idImagen = this.getAttribute('data-id');
-                                let imagenesAEliminar = document.getElementById('imagenes_a_eliminar').value.split(',');
-                                imagenesAEliminar.push(idImagen);
-                                document.getElementById('imagenes_a_eliminar').value = imagenesAEliminar.join(',');
-
-                                this.closest('.relative').remove();
-                            });
-                        });
-                    } else {
-                        console.error('Error al subir las imágenes:', data.error);
-                    }
-                })
-                .catch(error => console.error('Error en la petición:', error));
         });
     </script>
-
 
 
 <?php endif; ?>
