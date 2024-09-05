@@ -4,8 +4,7 @@ export function renderImageGallery(mediaItems) {
   galleryContainer.className = "relative w-full";
 
   const sliderContainer = document.createElement("div");
-  sliderContainer.className =
-    "relative w-full overflow-hidden rounded-xl shadow-lg";
+  sliderContainer.className = "relative w-full overflow-hidden rounded-xl shadow-lg";
 
   const mediaTrack = document.createElement("div");
   mediaTrack.className = "flex transition-transform duration-500 ease-in-out";
@@ -27,9 +26,17 @@ export function renderImageGallery(mediaItems) {
       const videoElement = document.createElement("video");
       videoElement.src = src;
       videoElement.controls = true;
-      videoElement.autoplay = true;
-      videoElement.loop = true;
       videoElement.className = "rounded-lg max-w-full max-h-screen";
+
+      // Reproducir o pausar video al hacer clic en él
+      videoElement.addEventListener("click", () => {
+        if (videoElement.paused) {
+          videoElement.play();
+        } else {
+          videoElement.pause();
+        }
+      });
+
       mediaContainer.appendChild(videoElement);
     }
   };
@@ -52,8 +59,7 @@ export function renderImageGallery(mediaItems) {
 
     if (!modalElement) {
       modalElement = document.createElement("div");
-      modalElement.className =
-        "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75";
+      modalElement.className = "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75";
       modalElement.innerHTML = `
         <div class="relative max-w-3xl mx-auto">
             <button id="closeModal" class="absolute top-2 right-2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center">
@@ -76,36 +82,26 @@ export function renderImageGallery(mediaItems) {
       `;
       document.body.appendChild(modalElement);
 
-      modalElement
-        .querySelector("#closeModal")
-        .addEventListener("click", closeModal);
+      modalElement.querySelector("#closeModal").addEventListener("click", closeModal);
 
       modalElement.querySelector("#prevMedia").addEventListener("click", () => {
-        currentMediaIndex =
-          currentMediaIndex > 0 ? currentMediaIndex - 1 : mediaItems.length - 1;
-        updateModalMedia(
-          mediaItems[currentMediaIndex].src,
-          mediaItems[currentMediaIndex].type
-        );
+        currentMediaIndex = (currentMediaIndex > 0) ? currentMediaIndex - 1 : mediaItems.length - 1;
+        updateModalMedia(mediaItems[currentMediaIndex].src, mediaItems[currentMediaIndex].type);
       });
 
       modalElement.querySelector("#nextMedia").addEventListener("click", () => {
-        currentMediaIndex =
-          currentMediaIndex < mediaItems.length - 1 ? currentMediaIndex + 1 : 0;
-        updateModalMedia(
-          mediaItems[currentMediaIndex].src,
-          mediaItems[currentMediaIndex].type
-        );
+        currentMediaIndex = (currentMediaIndex < mediaItems.length - 1) ? currentMediaIndex + 1 : 0;
+        updateModalMedia(mediaItems[currentMediaIndex].src, mediaItems[currentMediaIndex].type);
       });
 
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && modalElement) {
+        if (e.key === "Escape") {
           closeModal();
         }
       });
-    } else {
-      updateModalMedia(src, type);
     }
+
+    updateModalMedia(src, type);
   };
 
   mediaItems.forEach(({ src, type }, index) => {
@@ -132,22 +128,28 @@ export function renderImageGallery(mediaItems) {
       videoElement.className = "object-cover w-full h-auto rounded-lg";
       videoElement.muted = true; // Silenciar el video en la galería
       videoElement.loop = true; // Hacer que el video se reproduzca en bucle
-      videoElement.play(); // Reproducir el video automáticamente
 
       const playIcon = document.createElement("div");
-      playIcon.className =
-        "absolute inset-0 flex items-center justify-center text-white text-4xl";
+      playIcon.className = "absolute inset-0 flex items-center justify-center text-white text-4xl cursor-pointer";
       playIcon.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-16 h-16" viewBox="0 0 16 16">
           <path d="M4.5 3.5v9l7-4.5-7-4.5z"/>
         </svg>
       `;
 
+      playIcon.addEventListener("click", () => {
+        if (videoElement.paused) {
+          videoElement.play();
+          playIcon.style.display = "none";
+        } else {
+          videoElement.pause();
+          playIcon.style.display = "flex";
+        }
+      });
+
       videoWrapper.appendChild(videoElement);
       videoWrapper.appendChild(playIcon);
       mediaWrapper.appendChild(videoWrapper);
-
-      videoWrapper.addEventListener("click", () => openModal(index));
     }
 
     mediaWrapper.addEventListener("click", () => openModal(index));
@@ -159,33 +161,29 @@ export function renderImageGallery(mediaItems) {
 
   // Flechas de navegación
   const prevButton = document.createElement("button");
-  prevButton.className =
-    "absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
+  prevButton.className = "absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
   prevButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-    `;
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+  `;
 
   const nextButton = document.createElement("button");
-  nextButton.className =
-    "absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
+  nextButton.className = "absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 text-black text-2xl rounded-full w-10 h-10 flex items-center justify-center z-10";
   nextButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-    `;
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+  `;
 
   prevButton.addEventListener("click", () => {
-    currentMediaIndex =
-      currentMediaIndex > 0 ? currentMediaIndex - 1 : mediaItems.length - 1;
+    currentMediaIndex = (currentMediaIndex > 0) ? currentMediaIndex - 1 : mediaItems.length - 1;
     mediaTrack.style.transform = `translateX(-${currentMediaIndex * 100}%)`;
     updateIndicators();
   });
 
   nextButton.addEventListener("click", () => {
-    currentMediaIndex =
-      currentMediaIndex < mediaItems.length - 1 ? currentMediaIndex + 1 : 0;
+    currentMediaIndex = (currentMediaIndex < mediaItems.length - 1) ? currentMediaIndex + 1 : 0;
     mediaTrack.style.transform = `translateX(-${currentMediaIndex * 100}%)`;
     updateIndicators();
   });
@@ -195,16 +193,20 @@ export function renderImageGallery(mediaItems) {
 
   // Crear contenedor de indicadores
   const indicatorsContainer = document.createElement("div");
-  indicatorsContainer.className =
-    "absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2";
+  indicatorsContainer.className = "absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2";
 
   // Crear indicadores
   mediaItems.forEach((_, idx) => {
     const indicator = document.createElement("div");
-    indicator.className = "w-2 h-2 rounded-full bg-white bg-opacity-50";
+    indicator.className = "w-2 h-2 rounded-full bg-white bg-opacity-50 cursor-pointer";
     if (idx === currentMediaIndex) {
       indicator.classList.add("bg-opacity-100");
     }
+    indicator.addEventListener("click", () => {
+      currentMediaIndex = idx;
+      mediaTrack.style.transform = `translateX(-${currentMediaIndex * 100}%)`;
+      updateIndicators();
+    });
     indicatorsContainer.appendChild(indicator);
   });
 

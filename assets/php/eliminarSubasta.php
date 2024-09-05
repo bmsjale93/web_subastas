@@ -77,6 +77,9 @@ if (isset($_POST['id_subasta'])) {
         // Eliminar registros relacionados en la tabla `SubastaDetalles`
         $conn->prepare("DELETE FROM SubastaDetalles WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
+        // **Nuevo:** Eliminar registros relacionados en la tabla `SubastaIdealista`
+        $conn->prepare("DELETE FROM SubastaIdealista WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+
         // Finalmente, eliminar la entrada de la tabla `Subastas`
         $conn->prepare("DELETE FROM Subastas WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 

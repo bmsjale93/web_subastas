@@ -7,6 +7,18 @@
     $stmt_comentarios->bindParam(':id_subasta', $subasta['id_subasta'], PDO::PARAM_INT);
     $stmt_comentarios->execute();
     $comentario = $stmt_comentarios->fetchColumn();
+
+    // Obtener los datos de SubastaIdealista
+    $stmt_idealista = $conn->prepare("SELECT * FROM SubastaIdealista WHERE id_subasta = :id_subasta");
+    $stmt_idealista->bindParam(':id_subasta', $subasta['id_subasta'], PDO::PARAM_INT);
+    $stmt_idealista->execute();
+    $idealista = $stmt_idealista->fetch(PDO::FETCH_ASSOC);
+
+    // Obtener los detalles de la subasta, incluyendo el campo carga_subastas
+    $stmt_det = $conn->prepare("SELECT * FROM SubastaDetalles WHERE id_subasta = :id_subasta");
+    $stmt_det->bindParam(':id_subasta', $subasta['id_subasta']);
+    $stmt_det->execute();
+    $detalles = $stmt_det->fetch(PDO::FETCH_ASSOC);
     ?>
     <!-- Modal para editar subasta -->
     <div id="editModal<?= $subasta['id_subasta'] ?>" class="modal fade hidden fixed inset-0 z-50 overflow-y-auto">
@@ -98,9 +110,56 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="mt-4">
+                        <!-- Sección de Idealista -->
+                        <h6 class="text-lg font-semibold text-gray-700 mt-4">Detalles de la Propiedad</h6>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label for="habitaciones<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Habitaciones</label>
+                                <input type="number" id="habitaciones<?= $subasta['id_subasta'] ?>" name="habitaciones" value="<?= htmlspecialchars($idealista['habitaciones']) ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="banos<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Baños</label>
+                                <input type="number" id="banos<?= $subasta['id_subasta'] ?>" name="banos" value="<?= htmlspecialchars($idealista['banos']) ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="piscina<?= $subasta['id_subasta'] ?>" name="piscina" value="1" <?= $idealista['piscina'] ? 'checked' : '' ?> class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="piscina<?= $subasta['id_subasta'] ?>" class="text-sm font-medium text-gray-700">Piscina</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="jardin<?= $subasta['id_subasta'] ?>" name="jardin" value="1" <?= $idealista['jardin'] ? 'checked' : '' ?> class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="jardin<?= $subasta['id_subasta'] ?>" class="text-sm font-medium text-gray-700">Jardín</label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="ascensor<?= $subasta['id_subasta'] ?>" name="ascensor" value="1" <?= $idealista['ascensor'] ? 'checked' : '' ?> class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="ascensor<?= $subasta['id_subasta'] ?>" class="text-sm font-medium text-gray-700">Ascensor</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="garaje_idealista<?= $subasta['id_subasta'] ?>" name="garaje_idealista" value="1" <?= $idealista['garaje_idealista'] ? 'checked' : '' ?> class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="garaje_idealista<?= $subasta['id_subasta'] ?>" class="text-sm font-medium text-gray-700">Garaje</label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="trastero<?= $subasta['id_subasta'] ?>" name="trastero" value="1" <?= $idealista['trastero'] ? 'checked' : '' ?> class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="trastero<?= $subasta['id_subasta'] ?>" class="text-sm font-medium text-gray-700">Trastero</label>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="enlace_idealista<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Enlace Idealista</label>
+                                <input type="url" id="enlace_idealista<?= $subasta['id_subasta'] ?>" name="enlace_idealista" value="<?= htmlspecialchars($idealista['enlace_idealista']) ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
                             <label for="id_estado<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Estado de la Subasta</label>
-                            <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="id_estado<?= $subasta['id_subasta'] ?>" name="id_estado">
+                            <select id="id_estado<?= $subasta['id_subasta'] ?>" name="id_estado" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 <?php
                                 $stmt_estado = $conn->query("SELECT id_estado, estado FROM EstadosSubasta");
                                 while ($estado = $stmt_estado->fetch(PDO::FETCH_ASSOC)): ?>
@@ -142,20 +201,12 @@
                                 <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="precio_medio<?= $subasta['id_subasta'] ?>" name="precio_medio" value="<?= number_format($detalles['precio_medio'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
                             </div>
                             <div>
-                                <label for="precio_venta_medio<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Precio Venta Medio (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="precio_venta_medio<?= $subasta['id_subasta'] ?>" name="precio_venta_medio" value="<?= number_format($detalles['precio_venta_medio'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
-                            </div>
-                            <div>
-                                <label for="precio_trastero<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Precio Trastero (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="precio_trastero<?= $subasta['id_subasta'] ?>" name="precio_trastero" value="<?= number_format($detalles['precio_trastero'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
-                            </div>
-                            <div>
-                                <label for="precio_garaje<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Precio Garaje (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="precio_garaje<?= $subasta['id_subasta'] ?>" name="precio_garaje" value="<?= number_format($detalles['precio_garaje'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
-                            </div>
-                            <div>
                                 <label for="puja_mas_alta<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Puja Más Alta (€)</label>
                                 <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="puja_mas_alta<?= $subasta['id_subasta'] ?>" name="puja_mas_alta" value="<?= number_format($detalles['puja_mas_alta'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
+                            </div>
+                            <div>
+                                <label for="carga_subastas<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Cargas de Subasta (€)</label>
+                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="carga_subastas<?= $subasta['id_subasta'] ?>" name="carga_subastas" value="<?= number_format($detalles['carga_subastas'], 2, ',', '.') ?>" onblur="this.value = formatearNumero(this.value);">
                             </div>
                         </div>
 
@@ -273,23 +324,34 @@
                             </div>
                             <div>
                                 <label for="sup_construida<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Superficie Construida (m²)</label>
-                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="sup_construida<?= $subasta['id_subasta'] ?>" name="sup_construida" value="<?= number_format($catastro['sup_construida'], 2) ?>" step="0.01">
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="sup_construida<?= $subasta['id_subasta'] ?>" name="sup_construida" value="<?= htmlspecialchars($catastro['sup_construida']) ?>" step="0.01">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                             <div>
                                 <label for="vivienda<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Vivienda (m²)</label>
-                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="vivienda<?= $subasta['id_subasta'] ?>" name="vivienda" value="<?= number_format($catastro['vivienda'], 2) ?>" step="0.01">
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="vivienda<?= $subasta['id_subasta'] ?>" name="vivienda" value="<?= htmlspecialchars($catastro['vivienda']) ?>" step="0.01">
                             </div>
                             <div>
-                                <label for="garaje<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Garaje (m²)</label>
-                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="garaje<?= $subasta['id_subasta'] ?>" name="garaje" value="<?= number_format($catastro['garaje'], 2) ?>" step="0.01">
+                                <label for="terraza<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Terraza (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="terraza<?= $subasta['id_subasta'] ?>" name="terraza" value="<?= htmlspecialchars($catastro['terraza']) ?>" step="0.01">
+                            </div>
+
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <label for="zonas_comunes<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Zonas Comunes (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="zonas_comunes<?= $subasta['id_subasta'] ?>" name="zonas_comunes" value="<?= htmlspecialchars($catastro['zonas_comunes']) ?>" step="0.01">
+                            </div>
+                            <div>
+                                <label for="almacen<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Almacén (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="almacen<?= $subasta['id_subasta'] ?>" name="almacen" value="<?= htmlspecialchars($catastro['almacen']) ?>" step="0.01">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                             <div>
-                                <label for="almacen<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Almacén (m²)</label>
-                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="almacen<?= $subasta['id_subasta'] ?>" name="almacen" value="<?= number_format($catastro['almacen'], 2) ?>" step="0.01">
+                                <label for="garaje<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Garaje (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" id="garaje<?= $subasta['id_subasta'] ?>" name="garaje" value="<?= htmlspecialchars($catastro['garaje']) ?>" step="0.01">
                             </div>
                             <div>
                                 <label for="ano_construccion<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Año de Construcción</label>
@@ -405,8 +467,8 @@
                 scriptElement.onload = () => {
                     tinymce.init({
                         selector: 'textarea.tinymce-editor',
-                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ycheck typography inlinecss markdown',
-                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker typography inlinecss markdown',
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
                         tinycomments_mode: 'embedded',
                         tinycomments_author: 'Author name',
                         mergetags_list: [{

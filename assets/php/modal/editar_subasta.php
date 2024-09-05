@@ -13,9 +13,24 @@ error_reporting(E_ALL);
 
 function convertirDecimal($valor)
 {
-    $valor = str_replace(['€', '.', ','], ['', '', '.'], $valor);
-    return floatval($valor);
+    // Eliminar posibles espacios en blanco y símbolos de moneda
+    $valor = trim(str_replace(['€', ' '], '', $valor));
+
+    // Reemplazar coma decimal por un punto decimal, si existe
+    if (strpos($valor, ',') !== false) {
+        $valor = str_replace('.', '', $valor);  // Eliminar separadores de miles si existen
+        $valor = str_replace(',', '.', $valor); // Reemplazar la coma decimal por un punto
+    }
+
+    // Asegurarse de que el valor sea un número válido
+    if (is_numeric($valor)) {
+        return floatval($valor);
+    } else {
+        // En caso de que no sea numérico, devolver 0.0 como valor por defecto
+        return 0.0;
+    }
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_subasta = $_POST['id_subasta'];
@@ -97,10 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fieldsToUpdate = [];
     $camposDetalles = [
         'precio_medio',
-        'precio_venta_medio',
         'puja_mas_alta',
-        'precio_trastero',
-        'precio_garaje'
+        'carga_subastas'
     ];
 
     foreach ($camposDetalles as $campo) {
@@ -130,6 +143,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $sql = "UPDATE SubastaDetalles SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $stmt->bindValue(":$field", $value);
+        }
+        $stmt->bindValue(':id_subasta', $id_subasta, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    // Actualizar la tabla SubastaIdealista
+    $fieldsToUpdate = [];
+    $camposIdealista = [
+        'habitaciones',
+        'banos',
+        'piscina',
+        'jardin',
+        'ascensor',
+        'garaje_idealista',
+        'trastero',
+        'enlace_idealista'
+    ];
+
+    foreach ($camposIdealista as $campo) {
+        if (isset($_POST[$campo])) {
+            // Los campos de tipo checkbox (piscina, jardin, ascensor, garaje, trastero) se deben procesar
+            if (in_array($campo, ['piscina', 'jardin', 'ascensor', 'garaje_idealista', 'trastero'])) {
+                $fieldsToUpdate[$campo] = isset($_POST[$campo]) ? 1 : 0;
+            } else {
+                $fieldsToUpdate[$campo] = $_POST[$campo];
+            }
+        } else {
+            // Para checkboxes no enviados (no seleccionados)
+            if (in_array($campo, ['piscina', 'jardin', 'ascensor', 'garaje_idealista', 'trastero'])) {
+                $fieldsToUpdate[$campo] = 0;
+            }
+        }
+    }
+
+
+    if (!empty($fieldsToUpdate)) {
+        $setClause = [];
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClause[] = "$field = :$field";
+        }
+
+        $sql = "UPDATE SubastaIdealista SET " . implode(', ', $setClause) . " WHERE id_subasta = :id_subasta";
         $stmt = $conn->prepare($sql);
 
         foreach ($fieldsToUpdate as $field => $value) {
@@ -406,15 +465,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'uso_principal',
         'sup_construida',
         'vivienda',
+        'terraza',
         'garaje',
         'almacen',
         'ano_construccion',
-        'enlace_catastro'
+        'enlace_catastro',
+        'zonas_comunes'
     ];
 
     foreach ($camposCatastro as $campo) {
         if (!empty($_POST[$campo])) {
-            $fieldsToUpdate[$campo] = $_POST[$campo];
+            // Usar convertirDecimal para campos que deben ser decimales
+            if (in_array($campo, ['sup_construida', 'vivienda', 'terraza', 'garaje', 'almacen'])) {
+                $fieldsToUpdate[$campo] = convertirDecimal($_POST[$campo]);
+            } else {
+                $fieldsToUpdate[$campo] = $_POST[$campo];  // No aplicar conversión a campos que no son decimales
+            }
         }
     }
 

@@ -141,28 +141,18 @@
                                 <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="precio_medio" name="precio_medio" onblur="this.value = formatearNumero(this.value);" required>
                             </div>
                             <div>
-                                <label for="precio_venta_medio" class="block text-sm font-medium text-gray-700">Precio Venta Medio (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="precio_venta_medio" name="precio_venta_medio" onblur="this.value = formatearNumero(this.value);" required>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            <div>
                                 <label for="puja_mas_alta" class="block text-sm font-medium text-gray-700">Puja Más Alta (€)</label>
                                 <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="puja_mas_alta" name="puja_mas_alta" onblur="this.value = formatearNumero(this.value);" required>
                             </div>
-                            <div>
-                                <label for="precio_trastero" class="block text-sm font-medium text-gray-700">Precio Trastero (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="precio_trastero" name="precio_trastero" onblur="this.value = formatearNumero(this.value);" required>
-                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
-                                <label for="precio_garaje" class="block text-sm font-medium text-gray-700">Precio Garaje (€)</label>
-                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="precio_garaje" name="precio_garaje" onblur="this.value = formatearNumero(this.value);" required>
-                            </div>
-                            <div>
                                 <label for="pdf_precios" class="block text-sm font-medium text-gray-700">PDF de Precios</label>
                                 <input type="file" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="pdf_precios" name="pdf_precios" accept="application/pdf">
+                            </div>
+                            <div>
+                                <label for="carga_subastas" class="block text-sm font-medium text-gray-700">Carga Subastas</label>
+                                <input type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="carga_subastas" name="carga_subastas">
                             </div>
                         </div>
                     </div>
@@ -196,23 +186,35 @@
                                 <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="vivienda" name="vivienda" step="0.01" required>
                             </div>
                             <div>
-                                <label for="garaje" class="block text-sm font-medium text-gray-700">Garaje (m²)</label>
-                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="garaje" name="garaje" step="0.01" required>
+                                <label for="terraza" class="block text-sm font-medium text-gray-700">Terraza (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="terraza" name="terraza" step="0.01">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
+                                <label for="zonas_comunes" class="block text-sm font-medium text-gray-700">Zonas Comunes (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="zonas_comunes" name="zonas_comunes" step="1" required>
+                            </div>
+                            <div>
                                 <label for="almacen" class="block text-sm font-medium text-gray-700">Almacén (m²)</label>
                                 <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="almacen" name="almacen" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="garaje" class="block text-sm font-medium text-gray-700">Garaje (m²)</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="garaje" name="garaje" step="0.01" required>
                             </div>
                             <div>
                                 <label for="ano_construccion" class="block text-sm font-medium text-gray-700">Año de Construcción</label>
                                 <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="ano_construccion" name="ano_construccion" required>
                             </div>
                         </div>
-                        <div class="mt-4">
-                            <label for="enlace_catastro" class="block text-sm font-medium text-gray-700">Enlace Catastro</label>
-                            <input type="url" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="enlace_catastro" name="enlace_catastro" required>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="enlace_catastro" class="block text-sm font-medium text-gray-700">Enlace Catastro</label>
+                                <input type="url" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="enlace_catastro" name="enlace_catastro" required>
+                            </div>
                         </div>
                     </div>
 
@@ -281,8 +283,68 @@
                         </div>
                     </div>
 
-                    <!-- Paso 6: Subir Imágenes, Videos y Documentos -->
+                    <!-- Paso 6: Detalles de Idealista -->
                     <div id="step6" class="step hidden">
+                        <h6 class="text-lg font-semibold text-gray-700">Detalles de Idealista</h6>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="habitaciones" class="block text-sm font-medium text-gray-700">Habitaciones</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="habitaciones" name="habitaciones" required>
+                            </div>
+                            <div>
+                                <label for="banos" class="block text-sm font-medium text-gray-700">Baños</label>
+                                <input type="number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="banos" name="banos" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="piscina" class="block text-sm font-medium text-gray-700">Piscina</label>
+                                <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="piscina" name="piscina" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="jardin" class="block text-sm font-medium text-gray-700">Jardín</label>
+                                <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="jardin" name="jardin" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="ascensor" class="block text-sm font-medium text-gray-700">Ascensor</label>
+                                <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="ascensor" name="ascensor" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="garaje_idealista" class="block text-sm font-medium text-gray-700">Garaje</label>
+                                <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="garaje_idealista" name="garaje_idealista" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="trastero" class="block text-sm font-medium text-gray-700">Trastero</label>
+                                <select class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="trastero" name="trastero" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Sí</option>
+                                </select>
+                            </div>
+                            <div class="mt-4">
+                                <label for="enlace_idealista" class="block text-sm font-medium text-gray-700">Enlace Idealista</label>
+                                <input type="url" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" id="enlace_idealista" name="enlace_idealista" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 7: Subir Imágenes, Videos y Documentos -->
+                    <div id="step7" class="step hidden">
                         <h6 class="text-lg font-semibold text-gray-700">Imágenes, Videos y Documentos</h6>
                         <div class="mb-4">
                             <label for="imagenes_subasta" class="block text-sm font-medium text-gray-700">Imágenes de la Subasta</label>
@@ -307,15 +369,14 @@
                         </div>
                     </div>
 
-                    <!-- Sección para añadir Comentarios -->
-                    <div id="step7" class="step hidden">
+                    <!-- Paso 8: Sección de Comentarios -->
+                    <div id="step8" class="step hidden">
                         <h6 class="text-lg font-semibold text-gray-700">Comentarios sobre la Subasta</h6>
                         <div class="mt-4">
                             <label for="comentarios" class="block text-sm font-medium text-gray-700">Comentarios</label>
-                            <textarea id="comentarios" name="comentarios" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            <textarea id="comentarios" name="comentarios" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm tinymce-editor"></textarea>
                         </div>
                     </div>
-
                 </div>
 
                 <!-- Navegación del modal -->
@@ -334,34 +395,37 @@
 require_once 'config_api_tiny.php';
 ?>
 <script>
-    const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof tinyMCEUrl === 'undefined') {
+            const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
 
-    // Añadir dinámicamente el script de TinyMCE con la clave cargada
-    const scriptElement = document.createElement('script');
-    scriptElement.src = tinyMCEUrl;
-    scriptElement.referrerPolicy = 'origin';
-    document.head.appendChild(scriptElement);
+            // Añadir dinámicamente el script de TinyMCE con la clave cargada
+            const scriptElement = document.createElement('script');
+            scriptElement.src = tinyMCEUrl;
+            scriptElement.referrerPolicy = 'origin';
+            document.head.appendChild(scriptElement);
 
-    scriptElement.onload = () => {
-        // Inicializar TinyMCE una vez que el script haya sido cargado
-        tinymce.init({
-            selector: 'textarea.tinymce-editor',
-            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker a11ychecker permanentpen powerpaste advtable advcode editimage advtemplate ai mentions tinycomments tableofcontents footnotes mergetags autocorrect typography inlinecss markdown',
-            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-            tinycomments_mode: 'embedded',
-            tinycomments_author: 'Author name',
-            mergetags_list: [{
-                    value: 'First.Name',
-                    title: 'First Name'
-                },
-                {
-                    value: 'Email',
-                    title: 'Email'
-                }
-            ],
-            ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-        });
-    };
+            scriptElement.onload = () => {
+                tinymce.init({
+                    selector: 'textarea.tinymce-editor',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed linkchecker typography inlinecss markdown',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                    tinycomments_mode: 'embedded',
+                    tinycomments_author: 'Author name',
+                    mergetags_list: [{
+                            value: 'First.Name',
+                            title: 'First Name'
+                        },
+                        {
+                            value: 'Email',
+                            title: 'Email'
+                        }
+                    ],
+                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                });
+            };
+        }
+    });
 </script>
 
 <script>

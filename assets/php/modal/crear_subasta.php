@@ -36,10 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cantidad_reclamada = convertirDecimal($_POST['cantidad_reclamada']);
         $tramos_pujas = convertirDecimal($_POST['tramos_pujas']);
         $precio_medio = convertirDecimal($_POST['precio_medio']);
-        $precio_venta_medio = convertirDecimal($_POST['precio_venta_medio']);
         $puja_mas_alta = convertirDecimal($_POST['puja_mas_alta']);
-        $precio_trastero = convertirDecimal($_POST['precio_trastero']);
-        $precio_garaje = convertirDecimal($_POST['precio_garaje']);
+        $carga_subastas = convertirDecimal($_POST['carga_subastas']); // Añadir la conversión de carga_subastas si es monetario
 
         // Insertar en la tabla Subastas
         $stmt = $conn->prepare("
@@ -62,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id_tipo_subasta', $_POST['id_tipo_subasta']);
         $stmt->bindParam(':id_estado', $_POST['id_estado']);
         $stmt->execute();
-
 
         // Obtener el ID de la subasta recién creada
         $id_subasta = $conn->lastInsertId();
@@ -88,22 +85,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $stmt = $conn->prepare("
-            INSERT INTO SubastaDetalles (id_subasta, precio_medio, precio_venta_medio, puja_mas_alta, precio_trastero, precio_garaje, url_pdf_precios)
-            VALUES (:id_subasta, :precio_medio, :precio_venta_medio, :puja_mas_alta, :precio_trastero, :precio_garaje, :url_pdf_precios)
+            INSERT INTO SubastaDetalles (id_subasta, precio_medio, puja_mas_alta, url_pdf_precios, carga_subastas)
+            VALUES (:id_subasta, :precio_medio, :puja_mas_alta, :url_pdf_precios, :carga_subastas)
         ");
         $stmt->bindParam(':id_subasta', $id_subasta);
         $stmt->bindParam(':precio_medio', $precio_medio);
-        $stmt->bindParam(':precio_venta_medio', $precio_venta_medio);
         $stmt->bindParam(':puja_mas_alta', $puja_mas_alta);
-        $stmt->bindParam(':precio_trastero', $precio_trastero);
-        $stmt->bindParam(':precio_garaje', $precio_garaje);
         $stmt->bindParam(':url_pdf_precios', $pdfPrecios);
+        $stmt->bindParam(':carga_subastas', $carga_subastas);
         $stmt->execute();
 
         // Insertar en la tabla Catastro
         $stmt = $conn->prepare("
-            INSERT INTO Catastro (id_subasta, ref_catastral, clase, uso_principal, sup_construida, vivienda, garaje, almacen, ano_construccion, enlace_catastro)
-            VALUES (:id_subasta, :ref_catastral, :clase, :uso_principal, :sup_construida, :vivienda, :garaje, :almacen, :ano_construccion, :enlace_catastro)
+            INSERT INTO Catastro (id_subasta, ref_catastral, clase, uso_principal, sup_construida, vivienda, garaje, almacen, terraza, ano_construccion, enlace_catastro, zonas_comunes)
+            VALUES (:id_subasta, :ref_catastral, :clase, :uso_principal, :sup_construida, :vivienda, :garaje, :almacen, :terraza, :ano_construccion, :enlace_catastro, :zonas_comunes)
         ");
         $stmt->bindParam(':id_subasta', $id_subasta);
         $stmt->bindParam(':ref_catastral', $_POST['ref_catastral']);
@@ -113,8 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':vivienda', $_POST['vivienda']);
         $stmt->bindParam(':garaje', $_POST['garaje']);
         $stmt->bindParam(':almacen', $_POST['almacen']);
+        $stmt->bindParam(':terraza', $_POST['terraza']); // Añadido el campo terraza
         $stmt->bindParam(':ano_construccion', $_POST['ano_construccion']);
         $stmt->bindParam(':enlace_catastro', $_POST['enlace_catastro']);
+        $stmt->bindParam(':zonas_comunes', $_POST['zonas_comunes']);
         $stmt->execute();
 
         // Insertar en la tabla Valoraciones - sin conversión
@@ -137,15 +134,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':estado_inquilino', $_POST['estado_inquilino']);
         $stmt->execute();
 
+        // Insertar en la tabla SubastaIdealista
+        $stmt = $conn->prepare("
+            INSERT INTO SubastaIdealista (id_subasta, habitaciones, banos, piscina, jardin, ascensor, garaje_idealista, trastero, enlace_idealista)
+            VALUES (:id_subasta, :habitaciones, :banos, :piscina, :jardin, :ascensor, :garaje_idealista, :trastero, :enlace_idealista)
+        ");
+
+        $stmt->bindParam(':id_subasta', $id_subasta);
+        $stmt->bindParam(':habitaciones', $_POST['habitaciones']);
+        $stmt->bindParam(':banos', $_POST['banos']);
+        $stmt->bindParam(':piscina', $_POST['piscina']);
+        $stmt->bindParam(':jardin', $_POST['jardin']);
+        $stmt->bindParam(':ascensor', $_POST['ascensor']);
+        $stmt->bindParam(':garaje_idealista', $_POST['garaje_idealista']);
+        $stmt->bindParam(':trastero', $_POST['trastero']);
+        $stmt->bindParam(':enlace_idealista', $_POST['enlace_idealista']);
+        $stmt->execute();
+
+
         // Insertar en la tabla Comentarios
         if (!empty($_POST['comentarios'])) {
             $stmt = $conn->prepare("
-        INSERT INTO Comentarios (id_subasta, comentario)
-        VALUES (:id_subasta, :comentario)
-    ");
-            $stmt->bindParam(':id_subasta',
-                $id_subasta
-            );
+                INSERT INTO Comentarios (id_subasta, comentario)
+                VALUES (:id_subasta, :comentario)
+            ");
+            $stmt->bindParam(':id_subasta', $id_subasta);
             $stmt->bindParam(':comentario', $_POST['comentarios']);
             $stmt->execute();
         }
@@ -168,9 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $relativeFilePath = 'assets/img/VIVIENDAS/' . $fileName;
 
                 $stmt = $conn->prepare("
-            INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
-            VALUES (:id_subasta, :url_imagen)
-        ");
+                    INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
+                    VALUES (:id_subasta, :url_imagen)
+                ");
                 $stmt->bindParam(':id_subasta', $id_subasta);
                 $stmt->bindParam(':url_imagen', $relativeFilePath);
                 $stmt->execute();
@@ -196,9 +209,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $relativeFilePath = 'assets/videos/VIVIENDAS/' . $fileName;
 
                 $stmt = $conn->prepare("
-            INSERT INTO VideosSubasta (id_subasta, url_video)
-            VALUES (:id_subasta, :url_video)
-        ");
+                    INSERT INTO VideosSubasta (id_subasta, url_video)
+                    VALUES (:id_subasta, :url_video)
+                ");
                 $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
                 $stmt->bindParam(':url_video', $relativeFilePath, PDO::PARAM_STR);
                 $stmt->execute();

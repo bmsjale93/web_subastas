@@ -16,7 +16,6 @@ try {
             s.*, 
             es.estado AS estado_subasta,
             sd.precio_medio,
-            sd.precio_venta_medio,
             im.url_imagen AS imagen_portada
         FROM 
             Subastas s
@@ -56,7 +55,9 @@ $min_valor_subasta = min(array_column($subastas, 'valor_subasta'));
 $initial_valor_subasta = ($min_valor_subasta + $max_valor_subasta) / 2;
 
 // Obtenemos los días con subastas para el calendario
-$subasta_fechas = array_column($subastas, 'fecha_conclusion');
+$subasta_fechas = array_map(function ($subasta) {
+    return date('Y-m-d', strtotime($subasta['fecha_conclusion']));
+}, $subastas);
 ?>
 
 <!DOCTYPE html>
@@ -190,7 +191,6 @@ $subasta_fechas = array_column($subastas, 'fecha_conclusion');
                                 <div class="subasta-card-info">
                                     <p>Valor Subasta: <span class="value" data-value="<?= number_format($subasta['valor_subasta'], 2) ?>"><?= number_format($subasta['valor_subasta'], 2) ?></span> €</p>
                                     <p>Precio m²: <?= number_format($subasta['precio_medio'], 2) ?> €</p>
-                                    <p>Venta Estimada: <?= number_format($subasta['precio_venta_medio'], 2) ?> €</p>
                                     <p>Fin de Subasta: <?= date('d/m/Y H:i', strtotime($subasta['fecha_conclusion'])) ?></p>
                                 </div>
                                 <div class="subasta-card-status <?= getProcessColor($subasta['estado_subasta']) ?>">

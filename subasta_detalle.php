@@ -15,18 +15,18 @@ if (!$id_subasta) {
 }
 
 try {
-    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*, 
-                               sd.precio_medio, sd.precio_venta_medio, 
-                               sd.url_pdf_precios, sd.puja_mas_alta, 
-                               sd.precio_trastero, sd.precio_garaje,
-                               ts.tipo_subasta, s.cantidad_reclamada
-                        FROM Subastas s
-                        LEFT JOIN Catastro c ON s.id_subasta = c.id_subasta
-                        LEFT JOIN Valoraciones v ON s.id_subasta = v.id_subasta
-                        LEFT JOIN Localizaciones l ON s.id_subasta = l.id_subasta
-                        LEFT JOIN SubastaDetalles sd ON s.id_subasta = sd.id_subasta
-                        LEFT JOIN TiposSubasta ts ON s.id_tipo_subasta = ts.id_tipo_subasta
-                        WHERE s.id_subasta = :id_subasta");
+    $stmt = $conn->prepare("SELECT s.*, c.*, v.*, l.*, sd.precio_medio, sd.url_pdf_precios, 
+        sd.puja_mas_alta, sd.carga_subastas, ts.tipo_subasta, si.habitaciones, si.banos, 
+        si.piscina, si.jardin, si.ascensor, si.garaje_idealista as garaje_idealista, si.trastero, 
+        si.enlace_idealista, c.zonas_comunes 
+        FROM Subastas s
+        LEFT JOIN Catastro c ON s.id_subasta = c.id_subasta
+        LEFT JOIN Valoraciones v ON s.id_subasta = v.id_subasta
+        LEFT JOIN Localizaciones l ON s.id_subasta = l.id_subasta
+        LEFT JOIN SubastaDetalles sd ON s.id_subasta = sd.id_subasta
+        LEFT JOIN TiposSubasta ts ON s.id_tipo_subasta = ts.id_tipo_subasta
+        LEFT JOIN SubastaIdealista si ON s.id_subasta = si.id_subasta
+        WHERE s.id_subasta = :id_subasta");
     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
     $stmt->execute();
     $subasta = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,6 +39,51 @@ try {
     echo "Error al conectar con la base de datos: " . $e->getMessage();
     exit();
 }
+
+// Verificar variables necesarias para mostrar
+$puja_mas_alta = $subasta['puja_mas_alta'] ?? 0;
+$piscina = $subasta['piscina'] ? 'Sí' : 'No';
+$jardin = $subasta['jardin'] ? 'Sí' : 'No';
+$ascensor = $subasta['ascensor'] ? 'Sí' : 'No';
+$garaje = $subasta['garaje_idealista'] ? 'Sí' : 'No';
+$trastero = $subasta['trastero'] ? 'Sí' : 'No';
+
+$mediaItems = getSubastaMedia($conn, $id_subasta);
+$documents = getSubastaDocuments($conn, $id_subasta);
+$comentarios = getComentariosSubasta($conn, $id_subasta);
+
+$latitud = $subasta['latitud'];
+$altitud = $subasta['altitud'];
+
+if (!is_numeric($latitud) || !is_numeric($altitud)) {
+    echo "Las coordenadas no son válidas.";
+    exit();
+}
+
+// Valores de la vivienda
+$precio_medio = $subasta['precio_medio'] ?? 0;
+$vivienda = $subasta['vivienda'] ?? 0;
+$zonas_comunes = $subasta['zonas_comunes'] ?? 0;
+$terraza = $subasta['terraza'] ?? 0;
+$garaje_m2 = $subasta['garaje'] ?? 0;
+$almacen = $subasta['almacen'] ?? 0;
+$ano_construccion = $subasta['ano_construccion'] ?? 0;
+
+// Cálculo del valor estimado de venta
+$precio_garaje = $precio_medio * 0.5;
+$precio_trastero = $precio_medio * 0.5;
+
+$valor_vivienda = $vivienda * $precio_medio;
+$valor_terraza = $terraza * $precio_medio * 0.5;
+$valor_zonas_comunes = $zonas_comunes * $precio_medio * 0.4;
+$valor_garaje = $garaje_m2 * $precio_garaje;
+$valor_almacen = $almacen * $precio_trastero;
+
+$precio_venta_estimado = $valor_vivienda + $valor_terraza + $valor_zonas_comunes + $valor_garaje + $valor_almacen;
+
+$precio_venta_estimado = calcularAjusteAntiguedad($ano_construccion, $precio_venta_estimado);
+
+$url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/', $subasta['url_pdf_precios']) : null;
 
 function getSubastaMedia($conn, $id_subasta)
 {
@@ -63,8 +108,6 @@ function getSubastaMedia($conn, $id_subasta)
     return $media;
 }
 
-$mediaItems = getSubastaMedia($conn, $id_subasta);
-
 function getSubastaDocuments($conn, $id_subasta)
 {
     $stmt = $conn->prepare("SELECT nombre_documento, url_documento FROM Documentos WHERE id_subasta = :id_subasta");
@@ -73,9 +116,6 @@ function getSubastaDocuments($conn, $id_subasta)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$documents = getSubastaDocuments($conn, $id_subasta);
-
-// Obtener comentarios
 function getComentariosSubasta($conn, $id_subasta)
 {
     $stmt = $conn->prepare("SELECT comentario FROM Comentarios WHERE id_subasta = :id_subasta");
@@ -84,41 +124,28 @@ function getComentariosSubasta($conn, $id_subasta)
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-$comentarios = getComentariosSubasta($conn, $id_subasta);
-
-
-// Verificación de coordenadas
-$latitud = $subasta['latitud'];
-$altitud = $subasta['altitud'];
-
-if (!is_numeric($latitud) || !is_numeric($altitud)) {
-    echo "Las coordenadas no son válidas.";
-    exit();
+function calcularAjusteAntiguedad($anoConstruccion, $valorEstimado)
+{
+    $antiguedad = 2024 - $anoConstruccion;
+    if ($antiguedad > 40) {
+        return $valorEstimado * 0.7;
+    } elseif ($antiguedad > 35) {
+        return $valorEstimado * 0.725;
+    } elseif ($antiguedad > 30) {
+        return $valorEstimado * 0.75;
+    } elseif ($antiguedad > 25) {
+        return $valorEstimado * 0.775;
+    } elseif ($antiguedad > 20) {
+        return $valorEstimado * 0.8;
+    } elseif ($antiguedad > 15) {
+        return $valorEstimado * 0.9;
+    } elseif ($antiguedad > 10) {
+        return $valorEstimado * 0.95;
+    } else {
+        return $valorEstimado;
+    }
 }
-
-// Extracción de valores para la valoración de la vivienda
-$fachada_y_exteriores = $subasta['fachada_y_exteriores'] ?? 0;
-$techo_y_canaletas = $subasta['techo_y_canaletas'] ?? 0;
-$ventanas_y_puertas = $subasta['ventanas_y_puerta'] ?? 0;
-$jardin_y_terrenos = $subasta['jardin_y_terrenos'] ?? 0;
-$estado_estructuras = $subasta['estado_estructuras'] ?? 0;
-$instalaciones_visibles = $subasta['instalaciones_visibles'] ?? 0;
-
-$vecindario = $subasta['vecindario'] ?? 0;
-$seguridad = $subasta['seguridad'] ?? 0;
-$ruido_y_olores = $subasta['ruido_y_olores'] ?? 0;
-$acceso_y_estacionamiento = $subasta['acceso_y_estacionamiento'] ?? 0;
-$localizacion = $subasta['localizacion'] ?? 0;
-$estado_inquilino = $subasta['estado_inquilino'] ?? 0;
-
-$puja_mas_alta = $subasta['puja_mas_alta'];
-$precio_venta_estimado = ($subasta['precio_medio'] ?? 0) * ($subasta['vivienda'] ?? 0);
-
-// Generar la ruta completa para el PDF de precios
-$url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/', $subasta['url_pdf_precios']) : null;
-
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -130,6 +157,7 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
@@ -203,21 +231,21 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
             <div class="col-12 col-xl-6">
                 <h2 class="text-2xl font-bold py-4 px-6 text-gray-800">CALCULADORA SUBASTAS</h2>
                 <div class="row">
-                    <!-- Datos del Cálculo -->
+                    <!-- DATOS DEL CÁLCULO -->
                     <div class="col-12 col-md-6 mb-6">
                         <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">DATOS DEL CÁLCULO</h4>
                         <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-center hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
                             <div class="mb-3">
-                                <label for="precio-vivienda" class="form-label text-sm font-medium">Precio m² Vivienda + Zonas Comunes:</label>
-                                <input type="text" class="form-control" id="precio-vivienda" value="<?= number_format($subasta['precio_medio'], 2, ',', '.') ?> €">
+                                <label for="precio-metro-vivienda" class="form-label text-sm font-medium">Precio m² Vivienda + Zonas Comunes:</label>
+                                <input type="text" class="form-control" id="precio-metro-vivienda" value="<?= number_format($precio_medio, 2, ',', '.') ?> €">
                             </div>
                             <div class="mb-3">
-                                <label for="precio-trastero" class="form-label text-sm font-medium">Precio m² Trastero:</label>
-                                <input type="text" class="form-control" id="precio-trastero" value="<?= number_format($subasta['precio_trastero'], 2, ',', '.') ?> €">
+                                <label for="precio-metro-trastero" class="form-label text-sm font-medium">Precio m² Trastero:</label>
+                                <input type="text" class="form-control" id="precio-metro-trastero" value="<?= number_format($precio_medio * 0.5, 2, ',', '.') ?> €">
                             </div>
                             <div class="mb-3">
-                                <label for="precio-garaje" class="form-label text-sm font-medium">Precio m² Garaje:</label>
-                                <input type="text" class="form-control" id="precio-garaje" value="<?= number_format($subasta['precio_garaje'], 2, ',', '.') ?> €">
+                                <label for="precio-metro-garaje" class="form-label text-sm font-medium">Precio m² Garaje:</label>
+                                <input type="text" class="form-control" id="precio-metro-garaje" value="<?= number_format($precio_medio * 0.5, 2, ',', '.') ?> €">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label text-sm font-medium">Precio Venta Estimada:</label>
@@ -226,77 +254,60 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
                             <button id="recalcular-btn" class="bg-blue-800 w-100 text-md text-white py-2 rounded-lg font-bold hover:bg-blue-600 transition duration-300 ease-in-out mb-1">RECALCULAR VALORES</button>
                         </div>
                     </div>
-                    <!-- Costes Asociados -->
+                    <!-- Tipos de Gastos -->
                     <div class="col-12 col-md-6">
-                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">COSTES ASOCIADOS</h4>
+                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">TIPOS DE GASTOS</h4>
                         <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            <!-- Compra Vivienda -->
+                            <!-- Gastos de Compra -->
                             <div class="mb-4">
-                                <h5 class="text-md font-bold text-gray-800 mb-1">COMPRA VIVIENDA</h5>
-                                <hr class="border-t border-dotted mb-2">
-                                <div class="flex justify-between items-center mb-1">
+                                <h5 class="text-md font-bold text-gray-800 mb-2">TIPOS DE GASTOS</h5>
+                                <hr class="border-t border-dotted mb-4">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium">Gastos Añadidos: 7,00%</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="gastos-anadidos" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-medium">ITP: 10,00%</span>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium">ITP: 7,50%</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="itp" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium">Gastos Notariales: 1.000,00€</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="gastos-notariales-compra" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium">Registro de la Propiedad: 500,00€</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="registro-propiedad-compra" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium">Gastos Administrativos: 800,00€</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="gastos-administrativos-compra" checked>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- Venta Vivienda -->
-                            <div>
-                                <h5 class="text-md font-bold text-gray-800 mb-2">VENTA VIVIENDA</h5>
-                                <hr class="border-t border-dotted mb-2">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-medium">IRPF: 21,00%</span>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="irpf" checked>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center mb-1">
+                                <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium">Comisión por Venta: 3,00%</span>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="comision-venta" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-medium">Gastos Notariales: 1.000,00€</span>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium">Gastos de Desalojo 5.000€</span>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="gastos-notariales-venta" checked>
+                                        <input class="form-check-input" type="checkbox" id="gastos-desalojo" checked>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-medium">Registro de la Propiedad: 500,00€</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium">Cargas Subasta</span>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="registro-propiedad-venta" checked>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-medium">Gastos Registro: 500,00€</span>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="gastos-registro" checked>
+                                        <input class="form-check-input" type="checkbox" id="carga_subastas" checked>
                                     </div>
                                 </div>
                             </div>
@@ -320,255 +331,437 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
             <!-- Información General -->
             <div class="col-12 col-xl-6">
                 <h2 class="text-2xl font-bold py-4 px-6 text-gray-800">INFORMACIÓN GENERAL DE LA SUBASTA</h2>
+                <!-- Primera fila: Valoración de la Vivienda -->
                 <div class="row">
+                    <div class="col-12">
+                        <h4 class="text-lg font-bold py-2 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                            IDEALISTA
+                        </h4>
+                        <div class="row">
+                            <!-- Primera columna - Habitaciones -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-bed fa-2x"></i> <!-- Icono de cama -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> HABITACIONES </h5>
+                                    <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['habitaciones']) ?></p>
+                                </div>
+                            </div>
+                            <!-- Segunda columna - Baños -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-bath fa-2x"></i> <!-- Icono de baño -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> BAÑOS </h5>
+                                    <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['banos']) ?></p>
+                                </div>
+                            </div>
+                            <!-- Tercera columna - Piscina -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-swimmer fa-2x"></i> <!-- Icono de piscina -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> PISCINA </h5>
+                                    <p class="text-lg font-semibold"><?= $piscina ?></p>
+                                </div>
+                            </div>
+                            <!-- Cuarta columna - Jardín -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-tree fa-2x"></i> <!-- Icono de árbol -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> JARDÍN </h5>
+                                    <p class="text-lg font-semibold"><?= $jardin ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Quinta columna - Ascensor -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-building fa-2x"></i> <!-- Icono de ascensor -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> ASCENSOR </h5>
+                                    <p class="text-lg font-semibold"><?= $ascensor ?></p>
+                                </div>
+                            </div>
+                            <!-- Sexta columna - Garaje -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-car fa-2x"></i> <!-- Icono de coche -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> GARAJE </h5>
+                                    <p class="text-lg font-semibold"><?= $garaje ?></p>
+                                </div>
+                            </div>
+                            <!-- Séptima columna - Trastero -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-box-open fa-2x"></i> <!-- Icono de caja -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> TRASTERO </h5>
+                                    <p class="text-lg font-semibold"><?= $trastero ?></p>
+                                </div>
+                            </div>
+                            <!-- Octava columna - Enlace Idealista -->
+                            <div class="col-6 col-md-3 mb-3 d-flex">
+                                <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                    <div class="mb-2">
+                                        <i class="fas fa-link fa-2x"></i> <!-- Icono de enlace -->
+                                    </div>
+                                    <h5 class="text-xs font-bold"> ENLACE IDEALISTA </h5>
+                                    <p class="text-xs font-semibold text-blue-800">
+                                        <a href="<?= htmlspecialchars($subasta['enlace_idealista']) ?>" target="_blank">Haz click aquí</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segunda fila: Información y Catastro -->
+                <div class="row mt-4">
                     <!-- Información -->
-                    <div class="col-12 col-md-6 mb-6">
-                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">INFORMACIÓN</h4>
-                        <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Dirección:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['direccion']) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Localidad:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['localidad']) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Provincia:</hhe>
+                    <div class="col-12 col-md-6 d-flex align-items-stretch">
+                        <div class="w-100 d-flex flex-column">
+                            <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                INFORMACIÓN
+                            </h4>
+                            <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out flex-grow">
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Dirección:</h5>
+                                    <p class="text-base"><?= htmlspecialchars($subasta['direccion']) ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Localidad:</h5>
+                                    <p class="text-base"><?= htmlspecialchars($subasta['localidad']) ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Provincia:</h5>
                                     <p class="text-base font-medium"><?= htmlspecialchars($subasta['provincia']) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Código Postal:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['cp']) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Fecha Inicio:</h5>
-                                <p class="text-base"><?= date('d/m/Y H:i', strtotime($subasta['fecha_inicio'])) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Fecha Conclusión:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Código Postal:</h5>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['cp']) ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Fecha Inicio:</h5>
+                                    <p class="text-base font-medium"><?= date('d/m/Y H:i', strtotime($subasta['fecha_inicio'])) ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Fecha Conclusión:</h5>
                                     <p class="text-base font-medium"><?= date('d/m/Y H:i', strtotime($subasta['fecha_conclusion'])) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Tipo de Subasta:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Tipo de Subasta:</h5>
                                     <p class="text-base font-medium"><?= htmlspecialchars($subasta['tipo_subasta']) ?></p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Enlace Subasta:</h5>
-                                <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Valor de Subasta:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Enlace Subasta:</h5>
+                                    <a href="<?= htmlspecialchars($subasta['enlace_subasta']) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Valor de Subasta:</h5>
                                     <p class="text-base font-medium"><?= number_format($subasta['valor_subasta'], 2, ',', '.') ?> €</p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Tasación:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Cargas:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['carga_subastas'], 2, ',', '.') ?> €</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Tasación:</h5>
                                     <p class="text-base font-medium"><?= number_format($subasta['tasacion'], 2, ',', '.') ?> €</p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Importe Depósito:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Importe Depósito:</h5>
                                     <p class="text-base font-medium"><?= number_format($subasta['importe_deposito'], 2, ',', '.') ?> €</p>
-                            </div>
-                            <div class="mb-3">
-                                <h5 class="font-bold text-base">Puja Mínima:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Puja Mínima:</h5>
                                     <p class="text-base font-medium"><?= $subasta['puja_minima'] ? number_format($subasta['puja_minima'], 2, ',', '.') . ' €' : 'Sin puja mínima' ?></p>
-                            </div>
-                            <div>
-                                <h5 class="font-bold text-base">Tramos entre Pujas:</hhe>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Tramos entre Pujas:</h5>
                                     <p class="text-base font-medium"><?= number_format($subasta['tramos_pujas'], 2, ',', '.') ?> €</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Catastro -->
-                    <div class="col-12 col-md-6 mb-6">
-                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">CATASTRO</h4>
-                        <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Referencia Catastral:</h5>
-                                <p class="text-base"><?= htmlspecialchars($subasta['ref_catastral']) ?></p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Clase:</hhe>
-                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['clase']) ?></p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Uso Principal:</hhe>
-                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['uso_principal']) ?></p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Superficie Construida:</hhe>
-                                    <p class="text-base font-medium"><?= number_format($subasta['sup_construida'], 2, ',', '.') ?> m²</p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Vivienda:</hhe>
-                                    <p class="text-base font-medium"><?= number_format($subasta['vivienda'] ?? 0, 2, ',', '.') ?> m²</p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Garaje:</hhe>
-                                    <p class="text-base font-medium"><?= number_format($subasta['garaje'] ?? 0, 2, ',', '.') ?> m²</p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Almacén:</hhe>
-                                    <p class="text-base font-medium"><?= number_format($subasta['almacen'] ?? 0, 2, ',', '.') ?> m²</p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Zonas Comunes:</hhe>
-                                    <p class="text-base font-medium"><?= number_format($subasta['zonas_comunes'] ?? 0, 2, ',', '.') ?> m²</p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Año de Construcción:</hhe>
-                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['ano_construccion']) ?></p>
-                            </div>
-                            <div class="mb-2">
-                                <h5 class="font-bold text-base">Enlace Catastro:</hhe>
-                                    <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
-                            </div>
-                        </div>
-                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 mt-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">DOCUMENTOS DISPONIBLES</h4>
-                        <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            <?php if ($url_pdf_precios): ?>
+                    <div class="col-12 col-md-6 d-flex align-items-stretch">
+                        <div class="w-100 d-flex flex-column">
+                            <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                CATASTRO
+                            </h4>
+                            <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out flex-grow">
                                 <div class="mb-2">
-                                    <h5 class="font-bold text-base">Estudio de la Subasta:</hhe>
-                                        <a href="<?= htmlspecialchars($url_pdf_precios) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
+                                    <h5 class="font-bold text-base">Referencia Catastral:</h5>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['ref_catastral']) ?></p>
                                 </div>
-                            <?php endif; ?>
-
-                            <?php if ($documents): ?>
-                                <div class="mb-0">
-                                    <h5 class="font-bold text-base">Documentos Relacionados:</hhe>
-                                        <?php foreach ($documents as $document): ?>
-                                            <p class="text-base font-semibold text-blue-800">
-                                                <a href="<?= htmlspecialchars(str_replace('../../', 'assets/', $document['url_documento'])) ?>" target="_blank">
-                                                    <?= htmlspecialchars($document['nombre_documento']) ?>
-                                                </a>
-                                            </p>
-                                        <?php endforeach; ?>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Clase:</h5>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['clase']) ?></p>
                                 </div>
-                            <?php else: ?>
-                                <p class="text-base">No hay documentos disponibles.</p>
-                            <?php endif; ?>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Uso Principal:</h5>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['uso_principal']) ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Superficie Construida:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['sup_construida'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Vivienda:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['vivienda'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Terraza:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['terraza'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Zonas Comunes:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['zonas_comunes'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Garaje:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['garaje'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Almacén:</h5>
+                                    <p class="text-base font-medium"><?= number_format($subasta['almacen'] ?? 0, 2, ',', '.') ?> m²</p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Año de Construcción:</h5>
+                                    <p class="text-base font-medium"><?= htmlspecialchars($subasta['ano_construccion'] ?? 'No disponible') ?></p>
+                                </div>
+                                <div class="mb-2">
+                                    <h5 class="font-bold text-base">Enlace Catastro:</h5>
+                                    <a href="<?= htmlspecialchars($subasta['enlace_catastro']) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Valoración de la Subasta y Comentarios -->
+        <div class="col-12">
+            <div class="row text-center mt-4">
+                <!-- Primera fila: Diagrama de cualidades y Comentarios sobre la vivienda -->
+                <!-- Pentagrama de cualidades -->
+                <div class="col-12 col-xl-6 mb-6">
+                    <h4 class="text-lg font-bold py-2 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        PENTAGRAMA DE CUALIDADES DE LA VIVIENDA
+                    </h4>
+                    <div id="radar-chart-container" class="flex justify-center items-center rounded-xl bg-white p-4 shadow-lg">
+                        <!-- El gráfico se renderiza aquí -->
+                    </div>
+                </div>
+                <!-- Comentarios sobre la vivienda -->
+                <div class="col-12 col-xl-6 mb-6">
+                    <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        COMENTARIOS SOBRE LA VIVIENDA
+                    </h4>
+                    <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        <?php if (!empty($comentarios)): ?>
+                            <?php foreach ($comentarios as $comentario): ?>
+                                <div class="mb-3">
+                                    <div class="text-base">
+                                        <?= $comentario // Mostrar el comentario con HTML sin escapado 
+                                        ?>
+                                    </div>
+                                    <hr class="border-gray-300">
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-base">No hay comentarios disponibles.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-
-            <!-- Valoración de la Subasta y Comentarios -->
-            <div class="col-12">
-                <div class="row text-center">
-                    <!-- Pentagrama de cualidades -->
-                    <div class="col-12 col-xl-6">
-                        <h4 class="text-lg font-bold py-2 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            PENTAGRAMA DE CUALIDADES DE LA VIVIENDA
-                        </h4>
-                        <div id="radar-chart-container" class="flex justify-center items-center rounded-xl bg-white p-4 shadow-lg">
-                            <!-- El gráfico se renderiza aquí -->
+            <div class="row text-center mt-4">
+                <!-- Segunda fila: Valoración de la vivienda y Documentos disponibles -->
+                <!-- Valoración de la Vivienda -->
+                <div class="col-12 col-xl-6 mb-6">
+                    <h4 class="text-lg font-bold py-2 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        VALORACIÓN DE LA VIVIENDA
+                    </h4>
+                    <div class="row">
+                        <!-- Primera Fila de valores -->
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-home fa-2x"></i> <!-- Icono de hogar -->
+                                </div>
+                                <h5 class="text-xs font-bold">FACHADA Y EXTERIORES</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['fachada_y_exteriores'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-water fa-2x"></i> <!-- Icono de agua -->
+                                </div>
+                                <h5 class="text-xs font-bold">TECHO Y CANALETAS</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['techo_y_canaletas'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-door-open fa-2x"></i> <!-- Icono de puerta abierta -->
+                                </div>
+                                <h5 class="text-xs font-bold">VENTANAS Y PUERTAS</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['ventanas_y_puerta'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-seedling fa-2x"></i> <!-- Icono de planta -->
+                                </div>
+                                <h5 class="text-xs font-bold">JARDÍN Y TERRENOS</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['jardin_y_terrenos'] ?? 0) ?></p>
+                            </div>
                         </div>
                     </div>
-                    <!-- Valoración de la Vivienda -->
-                    <div class="col-12 col-xl-6 mb-6 mt-4 mt-xl-0">
-                        <h4 class="text-lg font-bold py-2 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            VALORACIÓN DE LA VIVIENDA
-                        </h4>
-                        <div class="row">
-                            <!-- Primera Columna -->
-                            <div class="col-12 col-md-6 mb-3">
-                                <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Fachada y Exteriores:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($fachada_y_exteriores) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Techo y Canaletas:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($techo_y_canaletas) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Ventanas y Puertas:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($ventanas_y_puertas) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Jardín y Terrenos:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($jardin_y_terrenos) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Estado de las Estructuras:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($estado_estructuras) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Instalaciones Visibles:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($instalaciones_visibles) ?></p>
-                                    </div>
+                    <div class="row">
+                        <!-- Segunda Fila de valores -->
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-building fa-2x"></i> <!-- Icono de edificio -->
                                 </div>
-                            </div>
-                            <!-- Segunda Columna -->
-                            <div class="col-12 col-md-6 mb-3">
-                                <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Vecindario:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($vecindario) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Seguridad:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($seguridad) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Ruido y Olores:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($ruido_y_olores) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Acceso y Estacionamiento:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($acceso_y_estacionamiento) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Localización:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($localizacion) ?></p>
-                                    </div>
-                                    <div class="mb-1">
-                                        <h5 class="font-bold text-base">Estado del Inquilino:</hhe>
-                                            <p class="text-base font-medium"><?= htmlspecialchars($estado_inquilino) ?></p>
-                                    </div>
-                                </div>
+                                <h5 class="text-xs font-bold">ESTADO DE LAS ESTRUCTURAS</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['estado_estructuras'] ?? 0) ?></p>
                             </div>
                         </div>
-                        <!-- Sección de Comentarios -->
-                        <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                            COMENTARIOS SOBRE LA VIVIENDA
-                        </h4>
-                        <div class="col-12 mb-3">
-                            <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
-                                <?php if (!empty($comentarios)): ?>
-                                    <?php foreach ($comentarios as $comentario): ?>
-                                        <div class="mb-3">
-                                            <div class="text-base">
-                                                <?= $comentario // Mostrar el comentario con HTML sin escapado 
-                                                ?>
-                                            </div>
-                                            <hr class="border-gray-300">
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p class="text-base">No hay comentarios disponibles.</p>
-                                <?php endif; ?>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-tools fa-2x"></i> <!-- Icono de herramientas -->
+                                </div>
+                                <h5 class="text-xs font-bold">INSTALACIONES VISIBLES</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['instalaciones_visibles'] ?? 0) ?></p>
                             </div>
                         </div>
-
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-users fa-2x"></i> <!-- Icono de personas -->
+                                </div>
+                                <h5 class="text-xs font-bold">VECINDARIO</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['vecindario'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-shield-alt fa-2x"></i> <!-- Icono de escudo -->
+                                </div>
+                                <h5 class="text-xs font-bold">SEGURIDAD</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['seguridad'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Tercera Fila de valores -->
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-volume-up fa-2x"></i> <!-- Icono de sonido -->
+                                </div>
+                                <h5 class="text-xs font-bold">RUIDO Y OLORES</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['ruido_y_olores'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-parking fa-2x"></i> <!-- Icono de estacionamiento -->
+                                </div>
+                                <h5 class="text-xs font-bold">ACCESO Y ESTACIONAMIENTO</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['acceso_y_estacionamiento'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-map-marker-alt fa-2x"></i> <!-- Icono de ubicación -->
+                                </div>
+                                <h5 class="text-xs font-bold">LOCALIZACIÓN</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['localizacion'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-3 d-flex">
+                            <div class="bg-white border-gray-400 border-3 p-2 rounded-lg shadow-md text-center d-flex flex-column justify-content-center align-items-center w-100 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                                <div class="mb-2">
+                                    <i class="fas fa-user fa-2x"></i> <!-- Icono de persona -->
+                                </div>
+                                <h5 class="text-xs font-bold">ESTADO DEL INQUILINO</h5>
+                                <p class="text-lg font-semibold"><?= htmlspecialchars($subasta['estado_inquilino'] ?? 0) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Documentos disponibles -->
+                <div class="col-12 col-xl-6 mb-6">
+                    <h4 class="text-lg font-bold py-2 px-6 bg-gray-400 text-white rounded-xl mb-3 hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        DOCUMENTOS DISPONIBLES
+                    </h4>
+                    <div class="bg-white border-gray-400 border-3 p-4 rounded-lg shadow-md text-left hover:shadow-xl hover:bg-gray-500 transition duration-300 ease-in-out">
+                        <?php if ($url_pdf_precios): ?>
+                            <div class="mb-2">
+                                <h5 class="font-bold text-base">Estudio de la Subasta:</h5>
+                                <a href="<?= htmlspecialchars($url_pdf_precios) ?>" target="_blank" class="text-base font-semibold text-blue-800">Haz click aquí</a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($documents): ?>
+                            <div class="mb-0">
+                                <h5 class="font-bold text-base">Documentos Relacionados:</h5>
+                                <?php foreach ($documents as $document): ?>
+                                    <p class="text-base font-semibold text-blue-800">
+                                        <a href="<?= htmlspecialchars(str_replace('../../', 'assets/', $document['url_documento'])) ?>" target="_blank">
+                                            <?= htmlspecialchars($document['nombre_documento']) ?>
+                                        </a>
+                                    </p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <p class="text-base">No hay documentos disponibles.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="assets/js/config_api.js"></script>
     <script type="text/javascript">
         const metrosVivienda = <?= json_encode(floatval($subasta['vivienda'] ?? 0)) ?>;
-        const metrosTrastero = <?= json_encode(floatval($subasta['trastero'] ?? 0)) ?>;
+        const metrosZonasComunes = <?= json_encode(floatval($subasta['zonas_comunes'] ?? 0)) ?>;
+        const metrosTrastero = <?= json_encode(floatval($subasta['almacen'] ?? 0)) ?>;
         const metrosGaraje = <?= json_encode(floatval($subasta['garaje'] ?? 0)) ?>;
         const precioMedio = <?= json_encode(floatval($subasta['precio_medio'] ?? 0)) ?>;
-        const precioTrastero = <?= json_encode(floatval($subasta['precio_trastero'] ?? 0)) ?>;
-        const precioGaraje = <?= json_encode(floatval($subasta['precio_garaje'] ?? 0)) ?>;
+        const cargaSubastas = <?= json_encode(floatval($subasta['carga_subastas'] ?? 0)) ?>;
+        const metrosTerraza = <?= json_encode(floatval($subasta['terraza'] ?? 0)) ?>;
+        const anoConstruccion = <?= json_encode(intval($subasta['ano_construccion'] ?? 0)) ?>;
+
+        // Calculando precio_garaje y precio_trastero en el lado del cliente
+        const precioGaraje = precioMedio * 0.5;
+        const precioTrastero = precioMedio * 0.5;
     </script>
 
     <script type="module">
@@ -599,35 +792,35 @@ $url_pdf_precios = $subasta['url_pdf_precios'] ? str_replace('../../', 'assets/'
             radarChartContainer.innerHTML = '';
 
             const radarChartElement = renderRadarChart({
-                "Fachada y Exteriores": <?= $fachada_y_exteriores ?>,
-                "Techo y Canaletas": <?= $techo_y_canaletas ?>,
-                "Ventanas y Puertas": <?= $ventanas_y_puertas ?>,
-                "Jardín y Terrenos": <?= $jardin_y_terrenos ?>,
-                "Estructuras": <?= $estado_estructuras ?>,
-                "Instalaciones": <?= $instalaciones_visibles ?>,
-                "Vecindario": <?= $vecindario ?>,
-                "Seguridad": <?= $seguridad ?>,
-                "Ruido y Olores": <?= $ruido_y_olores ?>,
-                "Estacionamiento": <?= $acceso_y_estacionamiento ?>,
-                "Localización": <?= $localizacion ?>,
-                "Estado Inquilino": <?= $estado_inquilino ?>
+                "Fachada y Exteriores": <?= $subasta['fachada_y_exteriores'] ?? 0 ?>,
+                "Techo y Canaletas": <?= $subasta['techo_y_canaletas'] ?? 0 ?>,
+                "Ventanas y Puertas": <?= $subasta['ventanas_y_puerta'] ?? 0 ?>,
+                "Jardín y Terrenos": <?= $subasta['jardin_y_terrenos'] ?? 0 ?>,
+                "Estado Estructuras": <?= $subasta['estado_estructuras'] ?? 0 ?>,
+                "Instalaciones Visibles": <?= $subasta['instalaciones_visibles'] ?? 0 ?>,
+                "Vecindario": <?= $subasta['vecindario'] ?? 0 ?>,
+                "Seguridad": <?= $subasta['seguridad'] ?? 0 ?>,
+                "Ruido y Olores": <?= $subasta['ruido_y_olores'] ?? 0 ?>,
+                "Acceso y Estacionamiento": <?= $subasta['acceso_y_estacionamiento'] ?? 0 ?>,
+                "Localización": <?= $subasta['localizacion'] ?? 0 ?>,
+                "Estado Inquilino": <?= $subasta['estado_inquilino'] ?? 0 ?>
             });
 
-            radarChartContainer.appendChild(radarChartElement); // Añade el nuevo canvas al contenedor
+            radarChartContainer.appendChild(radarChartElement);
 
             // Renderizado del mapa
             const mapContainer = document.getElementById('mapContainer');
-            mapContainer.innerHTML = ''; // Limpia el contenedor antes de renderizar el mapa
+            mapContainer.innerHTML = '';
             renderGoogleMap(mapContainer, <?= $latitud ?>, <?= $altitud ?>);
 
             // Renderizado de la galería de imágenes y videos
             const galleryContainer = document.getElementById('gallery-container');
             const mediaItems = <?= json_encode($mediaItems, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-            galleryContainer.innerHTML = ''; // Limpia el contenedor antes de añadir las imágenes y videos
+            galleryContainer.innerHTML = '';
 
             if (mediaItems.length > 0) {
                 const newGallery = renderImageGallery(mediaItems);
-                galleryContainer.innerHTML = ''; // Asegura que el contenedor está vacío
+                galleryContainer.innerHTML = '';
                 galleryContainer.appendChild(newGallery);
             } else {
                 galleryContainer.innerHTML = '<p>No hay medios disponibles.</p>';

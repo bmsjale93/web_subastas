@@ -43,14 +43,21 @@ document.addEventListener("DOMContentLoaded", function () {
         "hover:bg-blue-400",
         "hover:text-white",
         "text-gray-700",
-        "text-center",
+        "text-center"
       );
 
-      // Resaltar día actual
-      if (fullDate === today.toISOString().split("T")[0]) {
-        dateElement.classList.add("border", "border-blue-700", "today"); // Clase para resaltar el día actual
+      // Resaltar día actual sin usar toISOString()
+      if (
+        fullDate ===
+        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}-${String(today.getDate()).padStart(2, "0")}`
+      ) {
+        dateElement.classList.add("border", "border-blue-700", "today");
       }
 
+      // Resaltar días con subastas
       if (subastaFechas.includes(fullDate)) {
         dateElement.classList.add("bg-blue-700", "text-white");
       }
@@ -59,7 +66,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Agregar evento de clic para filtrar subastas
       dateElement.addEventListener("click", function () {
-        if (fullDate === today.toISOString().split("T")[0]) {
+        const todayFormatted = `${today.getFullYear()}-${String(
+          today.getMonth() + 1
+        ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+        if (fullDate === todayFormatted) {
           showAllSubastas();
         } else {
           filterSubastasByDate(fullDate);

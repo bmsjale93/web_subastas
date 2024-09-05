@@ -5,35 +5,45 @@ export function renderRadarChart(qualities) {
   const canvas = document.createElement("canvas");
   canvas.style.width = "100%";
 
-  // Función para ajustar la altura del canvas según el tamaño de la pantalla
   function adjustCanvasHeight() {
     const screenWidth = window.innerWidth;
 
     if (screenWidth >= 1200) {
-      // Pantallas grandes (escritorio)
       canvas.style.height = "700px";
     } else if (screenWidth >= 768) {
-      // Pantallas medianas (tabletas, iPad)
       canvas.style.height = "500px";
     } else {
-      // Pantallas pequeñas (móviles)
-      canvas.style.height = "300px";
+      canvas.style.height = "600px";
     }
   }
 
-  // Llamar a la función para ajustar la altura al cargar la página
   adjustCanvasHeight();
-
-  // Ajustar la altura cuando se redimensiona la ventana
   window.addEventListener("resize", adjustCanvasHeight);
 
   function loadChartScript(callback) {
     if (typeof Chart !== "undefined") {
+      loadChartDataLabels(callback);
+    } else {
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js";
+      script.onload = () => loadChartDataLabels(callback);
+      document.head.appendChild(script);
+    }
+  }
+
+  function loadChartDataLabels(callback) {
+    if (typeof ChartDataLabels !== "undefined") {
+      Chart.register(ChartDataLabels); // Registrar el plugin con Chart.js
       callback();
     } else {
       const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/chart.js";
-      script.onload = callback;
+      script.src =
+        "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0";
+      script.onload = () => {
+        Chart.register(ChartDataLabels); // Registrar el plugin después de que se haya cargado
+        callback();
+      };
       document.head.appendChild(script);
     }
   }
@@ -42,46 +52,38 @@ export function renderRadarChart(qualities) {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       new Chart(ctx, {
-        type: "radar",
+        type: "polarArea",
         data: {
           labels: labels,
           datasets: [
             {
               label: "Valoración",
               data: data,
-              backgroundColor: "rgba(29, 78, 216, 0.28)",
-              borderColor: "rgba(29, 78, 216, 1)",
+              backgroundColor: labels.map((_, index) => {
+                const colors = [
+                  "rgba(255, 99, 132, 0.7)", // Rojo
+                  "rgba(54, 162, 235, 0.7)", // Azul
+                  "rgba(255, 206, 86, 0.7)", // Amarillo
+                  "rgba(75, 192, 192, 0.7)", // Verde
+                  "rgba(153, 102, 255, 0.7)", // Morado
+                  "rgba(255, 159, 64, 0.7)", // Naranja
+                  "rgba(99, 255, 132, 0.7)", // Verde Claro
+                  "rgba(162, 54, 235, 0.7)", // Azul Morado
+                  "rgba(206, 255, 86, 0.7)", // Verde Amarillo
+                  "rgba(192, 75, 192, 0.7)", // Rosa
+                  "rgba(102, 153, 255, 0.7)", // Azul Pastel
+                  "rgba(159, 64, 255, 0.7)", // Morado Claro
+                ];
+                return colors[index % colors.length];
+              }),
+              borderColor: "rgba(255, 255, 255, 1)",
               borderWidth: 2,
-              pointBackgroundColor: "rgba(29, 78, 216, 1)",
-              pointBorderColor: "#fff",
-              pointHoverBackgroundColor: "#fff",
-              pointHoverBorderColor: "rgba(54, 162, 235, 1)",
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "top",
-              labels: {
-                font: {
-                  size: 16,
-                  family: "'Poppins', sans-serif",
-                  weight: 500,
-                },
-                color: "#000",
-              },
-            },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  return context.dataset.label + ": " + context.raw;
-                },
-              },
-            },
-          },
           scales: {
             r: {
               beginAtZero: true,
@@ -89,10 +91,10 @@ export function renderRadarChart(qualities) {
               ticks: {
                 stepSize: 1,
                 backdropColor: "rgba(255, 255, 255, 0)",
-                color: "#000",
+                color: "#444",
                 font: {
-                  size: 12,
-                  family: "'Roboto', sans-serif",
+                  size: 14,
+                  family: "'Poppins', sans-serif",
                 },
               },
               grid: {
@@ -103,11 +105,43 @@ export function renderRadarChart(qualities) {
               },
               pointLabels: {
                 font: {
-                  size: 14,
-                  weight: 500,
+                  size: 18,
+                  weight: 600,
                   family: "'Poppins', sans-serif",
                 },
-                color: "#000",
+                color: "#FFF",
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              align: "center",
+              labels: {
+                boxWidth: 20,
+                font: {
+                  size: 14,
+                  family: "'Poppins', sans-serif",
+                },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}`;
+                },
+              },
+            },
+            datalabels: {
+              display: true,
+              color: "#fff",
+              font: {
+                weight: "bold",
+                size: 14,
+              },
+              formatter: function (value) {
+                return value;
               },
             },
           },
@@ -120,5 +154,5 @@ export function renderRadarChart(qualities) {
 
   loadChartScript(initializeChart);
 
-  return canvas; // Devuelve el canvas en lugar del contenedor
+  return canvas;
 }

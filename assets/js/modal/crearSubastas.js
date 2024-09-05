@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   let currentStep = 1;
+  const totalSteps = 8;
 
   // Función para mostrar el paso actual
   function showStep(step) {
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Actualiza la barra de progreso según el paso actual
   function updateProgressBar() {
     const progressBar = document.getElementById("progressBar");
-    const progressPercentage = (currentStep / 7) * 100;
+    const progressPercentage = (currentStep / totalSteps) * 100;
     progressBar.style.width = progressPercentage + "%";
   }
 
@@ -37,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     if (validateStep(currentStep)) {
-      if (currentStep < 7) {
+      if (currentStep < totalSteps) {
         currentStep++;
         showStep(currentStep);
         updateProgressBar();
@@ -69,8 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
     prevBtn.disabled = currentStep === 1;
 
     // Mostrar u ocultar los botones de "Siguiente" y "Enviar"
-    nextBtn.classList.toggle("hidden", currentStep === 7);
-    submitBtn.classList.toggle("hidden", currentStep !== 7);
+    nextBtn.classList.toggle("hidden", currentStep === totalSteps);
+    submitBtn.classList.toggle("hidden", currentStep !== totalSteps);
   }
 
   showStep(currentStep);
@@ -82,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Escuchar el evento submit para validar y enviar el formulario
   const form = document.getElementById("crearSubastaForm");
   form.addEventListener("submit", function (event) {
-    if (currentStep !== 7 || !validateStep(7)) {
+    if (currentStep !== totalSteps || !validateStep(totalSteps)) {
       event.preventDefault();
       alert("Complete todos los pasos antes de enviar.");
     }
