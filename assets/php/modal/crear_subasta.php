@@ -166,7 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Subir imágenes y documentos
         foreach ($_FILES['imagenes_subasta']['tmp_name'] as $key => $tmp_name) {
             if ($_FILES['imagenes_subasta']['error'][$key] === UPLOAD_ERR_OK) {
-                $uploadDir = '/Applications/MAMP/htdocs/subastas_fdm/assets/img/VIVIENDAS/';
+                // Directorio relativo al archivo PHP actual usando __DIR__
+                $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
                 $fileName = basename($_FILES['imagenes_subasta']['name'][$key]);
                 $targetFilePath = $uploadDir . $fileName;
 
@@ -175,18 +176,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     mkdir($uploadDir, 0777, true);
                 }
 
-                move_uploaded_file($tmp_name, $targetFilePath);
+                // Mover el archivo subido al directorio de destino
+                if (move_uploaded_file($tmp_name, $targetFilePath)) {
+                    // Guardar la ruta relativa en la base de datos
+                    $relativeFilePath = 'assets/img/VIVIENDAS/' . $fileName;
 
-                // Guardar la ruta relativa en la base de datos
-                $relativeFilePath = 'assets/img/VIVIENDAS/' . $fileName;
-
-                $stmt = $conn->prepare("
-                    INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
-                    VALUES (:id_subasta, :url_imagen)
-                ");
-                $stmt->bindParam(':id_subasta', $id_subasta);
-                $stmt->bindParam(':url_imagen', $relativeFilePath);
-                $stmt->execute();
+                    $stmt = $conn->prepare("
+                INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
+                VALUES (:id_subasta, :url_imagen)
+            ");
+                    $stmt->bindParam(':id_subasta',
+                        $id_subasta,
+                        PDO::PARAM_INT
+                    );
+                    $stmt->bindParam(':url_imagen',
+                        $relativeFilePath,
+                        PDO::PARAM_STR
+                    );
+                    $stmt->execute();
+                } else {
+                    // Manejar el error en caso de que el archivo no se mueva correctamente
+                    echo "Error al mover el archivo " . htmlspecialchars($fileName);
+                }
+            } else {
+                // Manejar el error de la subida
+                echo "Error en la subida de la imagen " . htmlspecialchars($_FILES['imagenes_subasta']['name'][$key]);
             }
         }
 

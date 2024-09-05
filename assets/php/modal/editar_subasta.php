@@ -228,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Subir nuevas imágenes
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
+        $uploadDir = '/../../../assets/img/VIVIENDAS/';
 
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
