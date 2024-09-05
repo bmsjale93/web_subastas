@@ -377,6 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Eliminar imágenes y videos seleccionados combinados
     if (!empty($_POST['media_a_eliminar'])) {
         $mediaAEliminar = explode(',', $_POST['media_a_eliminar']);
+
         foreach ($mediaAEliminar as $idMedia) {
             // Eliminar imagen
             $stmt = $conn->prepare("SELECT url_imagen FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
@@ -388,10 +389,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unlink(__DIR__ . '/../../../' . $imagen['url_imagen']);
             }
 
+            // Borrar la imagen de la base de datos
             $stmt = $conn->prepare("DELETE FROM ImagenesSubasta WHERE id_imagen = :id_imagen");
             $stmt->bindParam(':id_imagen', $idMedia, PDO::PARAM_INT);
             $stmt->execute();
+        }
 
+        foreach ($mediaAEliminar as $idMedia) {
             // Eliminar video
             $stmt = $conn->prepare("SELECT url_video FROM VideosSubasta WHERE id_video = :id_video");
             $stmt->bindParam(':id_video', $idMedia, PDO::PARAM_INT);
@@ -402,11 +406,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unlink(__DIR__ . '/../../../' . $video['url_video']);
             }
 
+            // Borrar el video de la base de datos
             $stmt = $conn->prepare("DELETE FROM VideosSubasta WHERE id_video = :id_video");
             $stmt->bindParam(':id_video', $idMedia, PDO::PARAM_INT);
             $stmt->execute();
         }
     }
+
 
     // Establecer imagen de portada
     if (!empty($_POST['imagen_portada'])) {
