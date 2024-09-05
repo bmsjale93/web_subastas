@@ -246,6 +246,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Verificar si es una imagen
             $fileType = mime_content_type($tmpName);
             if (strpos($fileType, 'image') === 0) {
+                // Si el archivo ya existe, omitir la subida
+                if (file_exists($targetFilePath)) {
+                    continue; // Saltar este archivo si ya existe
+                }
+
                 $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
                 $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
                 $counter = 1;
@@ -272,7 +277,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-
 
 
     // Subir nuevos videos
