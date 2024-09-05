@@ -228,8 +228,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Subir nuevas imágenes
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        $uploadDir = '/../../../assets/img/VIVIENDAS/';
+        // Ruta de carga correcta para el servidor
+        $uploadDir = '/public_html/assets/img/VIVIENDAS/';
 
+        // Verificar si el directorio de carga existe, y si no, crearlo
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
@@ -238,28 +240,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = basename($_FILES['nuevas_imagenes']['name'][$key]);
             $targetFilePath = $uploadDir . $fileName;
 
+            // Verificar si es una imagen
             $fileType = mime_content_type($tmpName);
             if (strpos($fileType, 'image') === 0) {
                 $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
                 $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
                 $counter = 1;
 
+                // Si el archivo ya existe, agregar un número al nombre
                 while (file_exists($targetFilePath)) {
                     $newFileName = $baseName . '_' . $counter . '.' . $fileExtension;
                     $targetFilePath = $uploadDir . $newFileName;
                     $counter++;
                 }
 
+                // Mover el archivo subido al directorio de destino
                 if (move_uploaded_file($tmpName, $targetFilePath)) {
+                    // Guardar la ruta relativa en la base de datos
                     $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
                     $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
                     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
                     $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                     $stmt->execute();
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Error al subir la imagen.']);
+                    exit();
                 }
             }
         }
     }
+
 
     // Subir nuevos videos
     if (isset($_FILES['nuevos_videos']) && !empty($_FILES['nuevos_videos']['name'][0])) {

@@ -166,8 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Subir imágenes y documentos
         foreach ($_FILES['imagenes_subasta']['tmp_name'] as $key => $tmp_name) {
             if ($_FILES['imagenes_subasta']['error'][$key] === UPLOAD_ERR_OK) {
-                // Directorio relativo al archivo PHP actual usando __DIR__
-                $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
+                // Cambiar la ruta de carga a la ruta del servidor público
+                $uploadDir = '/public_html/assets/img/VIVIENDAS/';
                 $fileName = basename($_FILES['imagenes_subasta']['name'][$key]);
                 $targetFilePath = $uploadDir . $fileName;
 
@@ -203,6 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "Error en la subida de la imagen " . htmlspecialchars($_FILES['imagenes_subasta']['name'][$key]);
             }
         }
+
 
         // Subir videos de la subasta
         foreach ($_FILES['videos_subasta']['tmp_name'] as $key => $tmp_name) {
