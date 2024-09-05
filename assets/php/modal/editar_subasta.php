@@ -228,51 +228,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Subir nuevas imágenes
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        // Usar __DIR__ para obtener la ruta absoluta correcta en el servidor
         $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
 
-        // Verificar si el directorio de carga existe, y si no, crearlo
         if (!is_dir($uploadDir)) {
-            if (!mkdir($uploadDir, 0777, true)) {
-                echo json_encode(['success' => false, 'error' => 'Error al crear el directorio de imágenes.']);
-                exit();
-            }
+            mkdir($uploadDir, 0777, true);
         }
 
         foreach ($_FILES['nuevas_imagenes']['tmp_name'] as $key => $tmpName) {
             $fileName = basename($_FILES['nuevas_imagenes']['name'][$key]);
             $targetFilePath = $uploadDir . $fileName;
 
-            // Verificar si es una imagen
             $fileType = mime_content_type($tmpName);
             if (strpos($fileType, 'image') === 0) {
-                // Si el archivo ya existe, omitir la subida
-                if (file_exists($targetFilePath)) {
-                    continue; // Saltar este archivo si ya existe
-                }
-
                 $fileExtension = pathinfo($targetFilePath, PATHINFO_EXTENSION);
                 $baseName = pathinfo($targetFilePath, PATHINFO_FILENAME);
                 $counter = 1;
 
-                // Si el archivo ya existe, agregar un número al nombre
                 while (file_exists($targetFilePath)) {
                     $newFileName = $baseName . '_' . $counter . '.' . $fileExtension;
                     $targetFilePath = $uploadDir . $newFileName;
                     $counter++;
                 }
 
-                // Mover el archivo subido al directorio de destino
                 if (move_uploaded_file($tmpName, $targetFilePath)) {
-                    // Guardar la ruta relativa en la base de datos
                     $relativeFilePath = 'assets/img/VIVIENDAS/' . basename($targetFilePath);
                     $stmt = $conn->prepare("INSERT INTO ImagenesSubasta (id_subasta, url_imagen) VALUES (:id_subasta, :url_imagen)");
                     $stmt->bindParam(':id_subasta', $id_subasta, PDO::PARAM_INT);
                     $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                     $stmt->execute();
-                } else {
-                    echo json_encode(['success' => false, 'error' => 'Error al mover la imagen al directorio de destino.']);
-                    exit();
                 }
             }
         }

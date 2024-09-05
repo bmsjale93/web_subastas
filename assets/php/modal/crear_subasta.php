@@ -166,44 +166,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Subir imágenes y documentos
         foreach ($_FILES['imagenes_subasta']['tmp_name'] as $key => $tmp_name) {
             if ($_FILES['imagenes_subasta']['error'][$key] === UPLOAD_ERR_OK) {
-                // Cambiar la ruta de carga a una ruta correcta en el servidor utilizando __DIR__
-                $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
+                $uploadDir = '/Applications/MAMP/htdocs/subastas_fdm/assets/img/VIVIENDAS/';
                 $fileName = basename($_FILES['imagenes_subasta']['name'][$key]);
                 $targetFilePath = $uploadDir . $fileName;
 
                 // Crear directorio si no existe
                 if (!file_exists($uploadDir)) {
-                    if (!mkdir($uploadDir, 0777, true)) {
-                        echo "Error al crear el directorio de imágenes.";
-                        exit();
-                    }
+                    mkdir($uploadDir, 0777,
+                        true
+                    );
                 }
 
-                // Mover el archivo subido al directorio de destino
-                if (move_uploaded_file($tmp_name, $targetFilePath)) {
-                    // Guardar la ruta relativa en la base de datos
-                    $relativeFilePath = 'assets/img/VIVIENDAS/' . $fileName;
+                move_uploaded_file($tmp_name, $targetFilePath);
 
-                    $stmt = $conn->prepare("
-                INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
-                VALUES (:id_subasta, :url_imagen)
-            ");
-                    $stmt->bindParam(':id_subasta',
-                        $id_subasta,
-                        PDO::PARAM_INT
-                    );
-                    $stmt->bindParam(':url_imagen',
-                        $relativeFilePath,
-                        PDO::PARAM_STR
-                    );
-                    $stmt->execute();
-                } else {
-                    // Manejar el error en caso de que el archivo no se mueva correctamente
-                    echo "Error al mover el archivo " . htmlspecialchars($fileName);
-                }
-            } else {
-                // Manejar el error de la subida
-                echo "Error en la subida de la imagen " . htmlspecialchars($_FILES['imagenes_subasta']['name'][$key]);
+                // Guardar la ruta relativa en la base de datos
+                $relativeFilePath = 'assets/img/VIVIENDAS/' . $fileName;
+
+                $stmt = $conn->prepare("
+            INSERT INTO ImagenesSubasta (id_subasta, url_imagen)
+            VALUES (:id_subasta, :url_imagen)
+        ");
+                $stmt->bindParam(':id_subasta', $id_subasta);
+                $stmt->bindParam(':url_imagen', $relativeFilePath);
+                $stmt->execute();
             }
         }
 
