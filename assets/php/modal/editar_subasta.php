@@ -228,12 +228,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Subir nuevas imágenes
     if (isset($_FILES['nuevas_imagenes']) && !empty($_FILES['nuevas_imagenes']['name'][0])) {
-        // Ruta de carga correcta para el servidor
-        $uploadDir = '/public_html/assets/img/VIVIENDAS/';
+        // Usar __DIR__ para obtener la ruta absoluta correcta en el servidor
+        $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
 
         // Verificar si el directorio de carga existe, y si no, crearlo
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            if (!mkdir($uploadDir, 0777, true)) {
+                echo json_encode(['success' => false, 'error' => 'Error al crear el directorio de imágenes.']);
+                exit();
+            }
         }
 
         foreach ($_FILES['nuevas_imagenes']['tmp_name'] as $key => $tmpName) {
@@ -263,12 +266,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bindParam(':url_imagen', $relativeFilePath, PDO::PARAM_STR);
                     $stmt->execute();
                 } else {
-                    echo json_encode(['success' => false, 'error' => 'Error al subir la imagen.']);
+                    echo json_encode(['success' => false, 'error' => 'Error al mover la imagen al directorio de destino.']);
                     exit();
                 }
             }
         }
     }
+
 
 
     // Subir nuevos videos

@@ -166,14 +166,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Subir imágenes y documentos
         foreach ($_FILES['imagenes_subasta']['tmp_name'] as $key => $tmp_name) {
             if ($_FILES['imagenes_subasta']['error'][$key] === UPLOAD_ERR_OK) {
-                // Cambiar la ruta de carga a la ruta del servidor público
-                $uploadDir = '/public_html/assets/img/VIVIENDAS/';
+                // Cambiar la ruta de carga a una ruta correcta en el servidor utilizando __DIR__
+                $uploadDir = __DIR__ . '/../../../assets/img/VIVIENDAS/';
                 $fileName = basename($_FILES['imagenes_subasta']['name'][$key]);
                 $targetFilePath = $uploadDir . $fileName;
 
                 // Crear directorio si no existe
                 if (!file_exists($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
+                    if (!mkdir($uploadDir, 0777, true)) {
+                        echo "Error al crear el directorio de imágenes.";
+                        exit();
+                    }
                 }
 
                 // Mover el archivo subido al directorio de destino
