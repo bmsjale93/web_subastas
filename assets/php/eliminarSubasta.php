@@ -47,7 +47,7 @@ if (isset($_POST['id_subasta'])) {
         $conn->prepare("DELETE FROM VideosSubasta WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Eliminar registros relacionados en la tabla `documentos`
-        $stmt = $conn->prepare("SELECT url_documento FROM documentos WHERE id_subasta = :id_subasta");
+        $stmt = $conn->prepare("SELECT url_documento FROM Documentos WHERE id_subasta = :id_subasta");
         $stmt->bindParam(':id_subasta', $id_subasta);
         $stmt->execute();
         $documentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -60,16 +60,16 @@ if (isset($_POST['id_subasta'])) {
         }
 
         // Eliminar las entradas de la tabla `documentos`
-        $conn->prepare("DELETE FROM documentos WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+        $conn->prepare("DELETE FROM Documentos WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Eliminar registros relacionados en la tabla `catastro`
-        $conn->prepare("DELETE FROM catastro WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+        $conn->prepare("DELETE FROM Catastro WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Eliminar registros relacionados en la tabla `localizaciones`
-        $conn->prepare("DELETE FROM localizaciones WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+        $conn->prepare("DELETE FROM Localizaciones WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Eliminar registros relacionados en la tabla `valoraciones`
-        $conn->prepare("DELETE FROM valoraciones WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
+        $conn->prepare("DELETE FROM Valoraciones WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
 
         // Eliminar registros relacionados en la tabla `PortadaSubasta`
         $conn->prepare("DELETE FROM PortadaSubasta WHERE id_subasta = :id_subasta")->execute([':id_subasta' => $id_subasta]);
