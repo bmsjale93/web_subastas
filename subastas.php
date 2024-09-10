@@ -91,7 +91,50 @@ $subasta_fechas = array_map(function ($subasta) {
                     <button class="bg-blue-700 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out" data-bs-toggle="modal" data-bs-target="#crearSubastaModal">
                         Crear Subasta
                     </button>
+                    <button class="bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out" data-bs-toggle="modal" data-bs-target="#subirCSVModal">
+                        Sub. Múltiple
+                    </button>
                 <?php endif; ?>
+            </div>
+            <!-- Modal para subir CSV -->
+            <div class="modal fade" id="subirCSVModal" tabindex="-1" aria-labelledby="subirCSVModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <form action="assets/php/modal/subir_csv_subastas.php" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="subirCSVModalLabel">
+                                    <i class="fas fa-upload"></i> Subir Subastas en Masa (CSV)
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Alerta para formato correcto -->
+                                <div class="alert alert-info d-flex align-items-center" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Asegúrese de que el archivo esté en formato CSV y siga el formato correcto.
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="csv_subastas" class="form-label fw-bold">Seleccione el archivo CSV</label>
+                                    <input type="file" name="csv_subastas" id="csv_subastas" class="form-control" accept=".csv" required>
+                                </div>
+
+                                <!-- Barra de progreso para la subida -->
+                                <div class="progress" id="progressBar" style="display: none;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">0%</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times"></i> Cerrar
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="uploadBtn">
+                                    <i class="fas fa-upload"></i> Subir CSV
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
             <div class="flex-grow text-center">
                 <img src="assets/img/logo-fdm.png" alt="Logo" class="mx-auto" width="80" height="80">
@@ -228,6 +271,18 @@ $subasta_fechas = array_map(function ($subasta) {
         <script src="assets/js/components/eliminarSubasta.js"></script>
         <script src="assets/js/modal/crearSubastas.js"></script>
         <script src="assets/js/modal/editarSubasta.js"></script>
+        <script>
+            // Script para mostrar la barra de progreso durante la subida
+            const form = document.querySelector('form');
+            const progressBar = document.getElementById('progressBar');
+            const progressBarInner = progressBar.querySelector('.progress-bar');
+
+            form.addEventListener('submit', function() {
+                progressBar.style.display = 'block'; // Mostrar barra de progreso
+                progressBarInner.style.width = '50%'; // Aquí puedes manejar un valor más dinámico
+                progressBarInner.textContent = '50%'; // Esto es solo un placeholder
+            });
+        </script>
 
 </body>
 
