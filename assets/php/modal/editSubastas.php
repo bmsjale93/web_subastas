@@ -436,9 +436,8 @@
                         <h6 class="text-lg font-semibold text-gray-700 mt-4">Comentarios sobre la Subasta</h6>
                         <div class="mt-4">
                             <label for="comentarios<?= $subasta['id_subasta'] ?>" class="block text-sm font-medium text-gray-700">Comentarios</label>
-                            <textarea id="comentarios<?= $subasta['id_subasta'] ?>" name="comentarios" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm tinymce-editor"><?= htmlspecialchars($comentario) ?></textarea>
+                            <textarea id="comentarios<?= $subasta['id_subasta'] ?>" name="comentarios" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ckeditor"><?= htmlspecialchars($comentario) ?></textarea>
                         </div>
-
                         <div class="modal-footer align-items-center">
                             <button type="button" class="btn btn-secondary font-semibold" data-bs-dismiss="modal">Cancelar</button>
                             <button type="submit" class="btn btn-primary bg-blue-700">Guardar Cambios</button>
@@ -448,42 +447,45 @@
             </div>
         </div>
     </div>
-
-    <?php
-    // Incluir el archivo que contiene la clave de la API de TinyMCE
-    require_once 'config_api_tiny.php';
-    ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof tinyMCEUrl === 'undefined') {
-                const tinyMCEUrl = `https://cdn.tiny.cloud/1/<?= TINY_KEY ?>/tinymce/7/tinymce.min.js`;
-
-                // Añadir dinámicamente el script de TinyMCE con la clave cargada
-                const scriptElement = document.createElement('script');
-                scriptElement.src = tinyMCEUrl;
-                scriptElement.referrerPolicy = 'origin';
-                document.head.appendChild(scriptElement);
-
-                scriptElement.onload = () => {
-                    tinymce.init({
-                        selector: 'textarea.tinymce-editor',
-                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount linkchecker',
-                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-                        tinycomments_mode: 'embedded',
-                        tinycomments_author: 'Author name',
-                        mergetags_list: [{
-                                value: 'First.Name',
-                                title: 'First Name'
-                            },
-                            {
-                                value: 'Email',
-                                title: 'Email'
-                            }
-                        ],
-                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                    });
-                };
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para inicializar CKEditor en un textarea específico
+        function initializeCKEditor(textarea) {
+            if (CKEDITOR.instances[textarea.id]) {
+                CKEDITOR.instances[textarea.id].destroy(true);
             }
+            CKEDITOR.replace(textarea.id, {
+                toolbar: [
+                    { name: 'clipboard', items: ['Undo', 'Redo'] },
+                    { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+                    { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+                    { name: 'insert', items: ['Link', 'Image'] },
+                    { name: 'editing', items: ['Scayt'] },
+                    { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                    { name: 'colors', items: ['TextColor', 'BGColor'] }
+                ],
+                removeButtons: 'Subscript,Superscript',
+                height: 300
+            });
+        }
+
+        // Al abrir un modal, inicializar CKEditor para los textareas dentro de ese modal
+        $(document).ready(function() {
+            $('#crearSubastaModal, #editModal<?= $subasta['id_subasta'] ?>').on('shown.bs.modal', function () {
+                $(this).find('textarea.ckeditor').each(function () {
+                    initializeCKEditor(this);
+                });
+            });
+
+            $('#crearSubastaModal, #editModal<?= $subasta['id_subasta'] ?>').on('hidden.bs.modal', function () {
+                $(this).find('textarea.ckeditor').each(function () {
+                    if (CKEDITOR.instances[this.id]) {
+                        CKEDITOR.instances[this.id].destroy(true);
+                    }
+                });
+            });
         });
-    </script>
+    });
+</script>
+
 <?php endif; ?>

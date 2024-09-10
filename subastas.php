@@ -69,6 +69,12 @@ $subasta_fechas = array_map(function ($subasta) {
     <title>Subastas FDM - Listado de Subastas</title>
     <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
 
+    <!-- Cargar jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Cargar CKEditor -->
+    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+    
     <!-- Incluir la fuente Poppins desde Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
